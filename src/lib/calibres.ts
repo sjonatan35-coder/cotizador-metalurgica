@@ -17,7 +17,6 @@ export const MATERIAL_LABELS: Record<Material, string> = {
 export interface Proyecto {
   id:                  string
   label:               string
-  emoji:               string
   descripcion:         string
   materiales:          Material[]
   calibreMin:          number
@@ -26,12 +25,10 @@ export interface Proyecto {
   medidasEspeciales?:  { label: string; widthMm: number; lengthMm: number }[]
   nota?:               string
 }
-
 export const PROYECTOS: Proyecto[] = [
   {
     id:                 'porton',
     label:              'Portón',
-    emoji:              '🚪',
     descripcion:        'Portones corredizos, batientes o seccionales',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
     calibreMin:         14,
@@ -41,7 +38,6 @@ export const PROYECTOS: Proyecto[] = [
   {
     id:                 'piso',
     label:              'Piso',
-    emoji:              '🏗️',
     descripcion:        'Pisos industriales, plataformas y entrepanos',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
     calibreMin:         14,
@@ -51,7 +47,6 @@ export const PROYECTOS: Proyecto[] = [
   {
     id:                 'techo',
     label:              'Techo',
-    emoji:              '🏠',
     descripcion:        'Chapas para techos y cubiertas',
     materiales:         ['GALVANIZADO'],
     calibreMin:         22,
@@ -66,7 +61,6 @@ export const PROYECTOS: Proyecto[] = [
   {
     id:                 'estructura',
     label:              'Estructura',
-    emoji:              '🔩',
     descripcion:        'Estructuras metálicas, vigas y refuerzos',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
     calibreMin:         10,
@@ -76,7 +70,6 @@ export const PROYECTOS: Proyecto[] = [
   {
     id:                 'zingueria',
     label:              'Zinguería',
-    emoji:              '✂️',
     descripcion:        'Chapas finas para revestimientos y terminaciones',
     materiales:         ['GALVANIZADO'],
     calibreMin:         28,
@@ -87,7 +80,6 @@ export const PROYECTOS: Proyecto[] = [
   {
     id:                 'trailer',
     label:              'Trailer',
-    emoji:              '🚛',
     descripcion:        'Pisos y laterales para trailers y acoplados',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
     calibreMin:         14,
@@ -97,7 +89,6 @@ export const PROYECTOS: Proyecto[] = [
   {
     id:                 'estampado',
     label:              'Estampado / CNC',
-    emoji:              '⚙️',
     descripcion:        'Cortes a medida con CNC según plano del cliente',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
     calibreMin:         7,
@@ -108,7 +99,6 @@ export const PROYECTOS: Proyecto[] = [
   {
     id:                 'otros',
     label:              'Otros',
-    emoji:              '💡',
     descripcion:        'Cocinas, muebles, proyectos especiales y más',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
     calibreMin:         7,
