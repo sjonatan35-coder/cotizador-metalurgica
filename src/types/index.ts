@@ -2,15 +2,9 @@
 // Tipos base de MetalApp Pro
 // ─────────────────────────────────────────────
 
-export type ProductType =
-  | 'CHAPA_LISA'
-  | 'CHAPA_PERFORADA'
-  | 'CHAPA_ESTRIADA'
-  | 'FLEJE_ROLLO'
-
-export type Material =
-  | 'HIERRO_NEGRO'
-  | 'HIERRO_GALVANIZADO'
+// Material se define en lib/calibres.ts
+// Lo re-exportamos acá para que el resto del proyecto lo importe desde @/types
+export type { Material } from '@/lib/calibres'
 
 export type CustomerType =
   | 'RETAIL'
@@ -23,22 +17,23 @@ export type UserRole =
   | 'WAREHOUSE'
   | 'DRIVER'
 
-// Calibres BWG con espesor en mm y pulgadas
+// Calibre BWG
 export interface CalibreBwg {
-  calibre: number
+  calibre:     number
   thicknessMm: number
   thicknessIn: number
 }
 
 // Resultado de la calculadora
 export interface CalculadoraResult {
-  pesoKg: number
-  precioArs: number
-  precioUsd?: number
-  calibre: number
+  pesoKg:      number
+  pesoTotal:   number
+  cantidad:    number
+  calibre:     number
   thicknessMm: number
-  widthMm: number
-  lengthMm: number
-  material: Material
-  tipo: ProductType
+  widthMm:     number
+  lengthMm:    number
+  material:    string
+  proyecto:    string
+  aMedida:     boolean
 }
