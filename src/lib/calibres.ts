@@ -12,8 +12,41 @@ export const MATERIAL_LABELS: Record<Material, string> = {
 }
 
 // ─────────────────────────────────────────────
-// PROYECTOS — Lo que ve el cliente
+// CONVERSIÓN DE UNIDADES → siempre a metros
 // ─────────────────────────────────────────────
+export type Unidad = 'mm' | 'cm' | 'm' | 'pulgadas'
+
+export function convertirAMetros(valor: number, unidad: Unidad): number {
+  switch (unidad) {
+    case 'mm':       return Math.round((valor / 1000)  * 10000) / 10000
+    case 'cm':       return Math.round((valor / 100)   * 10000) / 10000
+    case 'm':        return Math.round(valor            * 10000) / 10000
+    case 'pulgadas': return Math.round((valor * 0.0254) * 10000) / 10000
+  }
+}
+
+export function formatearMetros(metros: number): string {
+  return `${metros.toFixed(2)} m`
+}
+
+// ─────────────────────────────────────────────
+// MERMA DE ESTAMPADO
+// Las chapas estampadas pierden 2cm (0.02m) de largo
+// No pierden nada de ancho
+// ─────────────────────────────────────────────
+export const MERMA_ESTAMPADO_M = 0.02
+
+// ─────────────────────────────────────────────
+// PROYECTOS
+// ─────────────────────────────────────────────
+export type LogicaCalculo =
+  | 'superficie'
+  | 'porton'
+  | 'cantidad'
+  | 'estampada'
+  | 'whatsapp'
+  | 'libre'
+
 export interface Proyecto {
   id:                  string
   label:               string
@@ -22,9 +55,11 @@ export interface Proyecto {
   calibreMin:          number
   calibreMax:          number
   calibreRecomendado:  number
-  medidasEspeciales?:  { label: string; widthMm: number; lengthMm: number }[]
+  logica:              LogicaCalculo
+  medidasEspeciales?:  { label: string; widthM: number; lengthM: number }[]
   nota?:               string
 }
+
 export const PROYECTOS: Proyecto[] = [
   {
     id:                 'porton',
@@ -34,6 +69,7 @@ export const PROYECTOS: Proyecto[] = [
     calibreMin:         14,
     calibreMax:         18,
     calibreRecomendado: 16,
+    logica:             'porton',
   },
   {
     id:                 'piso',
@@ -43,6 +79,7 @@ export const PROYECTOS: Proyecto[] = [
     calibreMin:         14,
     calibreMax:         16,
     calibreRecomendado: 14,
+    logica:             'superficie',
   },
   {
     id:                 'techo',
@@ -52,9 +89,10 @@ export const PROYECTOS: Proyecto[] = [
     calibreMin:         22,
     calibreMax:         27,
     calibreRecomendado: 25,
+    logica:             'superficie',
     medidasEspeciales: [
-      { label: '1000 × 3000 mm', widthMm: 1000, lengthMm: 3000 },
-      { label: '1000 × 6000 mm', widthMm: 1000, lengthMm: 6000 },
+      { label: '1000 × 3000 mm', widthM: 1.00, lengthM: 3.00 },
+      { label: '1000 × 6000 mm', widthM: 1.00, lengthM: 6.00 },
     ],
     nota: 'El calibre 25 galvanizado es el más usado para techos',
   },
@@ -66,6 +104,7 @@ export const PROYECTOS: Proyecto[] = [
     calibreMin:         10,
     calibreMax:         14,
     calibreRecomendado: 12,
+    logica:             'superficie',
   },
   {
     id:                 'zingueria',
@@ -75,6 +114,7 @@ export const PROYECTOS: Proyecto[] = [
     calibreMin:         28,
     calibreMax:         34,
     calibreRecomendado: 30,
+    logica:             'cantidad',
     nota:               'Venta por mayor y menor',
   },
   {
@@ -85,26 +125,45 @@ export const PROYECTOS: Proyecto[] = [
     calibreMin:         14,
     calibreMax:         18,
     calibreRecomendado: 16,
+    logica:             'superficie',
   },
   {
-    id:                 'estampado',
-    label:              'Estampado / CNC',
-    descripcion:        'Cortes a medida con CNC según plano del cliente',
+    id:                 'estampada',
+    label:              'Chapa Estampada',
+    descripcion:        'Chapa con relieve de fábrica — LAF, LAC o Galvanizado',
+    materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
+    calibreMin:         14,
+    calibreMax:         22,
+    calibreRecomendado: 18,
+    logica:             'estampada',
+    medidasEspeciales: [
+      { label: '1000 × 2000 mm (queda 1000×1980)', widthM: 1.00, lengthM: 1.98 },
+      { label: '1220 × 2440 mm (queda 1220×2420)', widthM: 1.22, lengthM: 2.42 },
+      { label: '1500 × 3000 mm (queda 1500×2980)', widthM: 1.50, lengthM: 2.98 },
+    ],
+    nota: 'Las chapas estampadas pierden 2cm de largo por el proceso de estampado',
+  },
+  {
+    id:                 'cnc',
+    label:              'Corte CNC',
+    descripcion:        'Diseños y cortes especiales a medida del cliente',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
     calibreMin:         7,
     calibreMax:         27,
     calibreRecomendado: 16,
-    nota:               'Corte CNC propio o tercerizado según medida',
+    logica:             'whatsapp',
+    nota:               'Servicio especial — te contactamos para coordinar tu diseño',
   },
   {
     id:                 'otros',
     label:              'Otros',
-    descripcion:        'Cocinas, muebles, proyectos especiales y más',
+    descripcion:        'Armá tu pedido a medida — chapas, calibres y materiales a elección',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
     calibreMin:         7,
     calibreMax:         34,
     calibreRecomendado: 16,
-    nota:               'El cliente describe su proyecto y elige libremente',
+    logica:             'libre',
+    nota:               'Elegí material, calibre y medida libremente',
   },
 ]
 
@@ -133,7 +192,6 @@ export const CALIBRES_BWG: CalibreBwg[] = [
   { calibre: 25, thicknessMm: 0.508, thicknessIn: 0.020 },
   { calibre: 26, thicknessMm: 0.457, thicknessIn: 0.018 },
   { calibre: 27, thicknessMm: 0.406, thicknessIn: 0.016 },
-  // Desde C28: solo Galvanizado
   { calibre: 28, thicknessMm: 0.356, thicknessIn: 0.014 },
   { calibre: 29, thicknessMm: 0.330, thicknessIn: 0.013 },
   { calibre: 30, thicknessMm: 0.305, thicknessIn: 0.012 },
@@ -153,16 +211,16 @@ export const DENSIDADES: Record<Material, number> = {
 }
 
 // ─────────────────────────────────────────────
-// MEDIDAS ESTÁNDAR
+// MEDIDAS ESTÁNDAR (en metros)
 // ─────────────────────────────────────────────
 export const MEDIDAS_ESTANDAR = [
-  { label: '1000 × 2000 mm',            widthMm: 1000, lengthMm: 2000 },
-  { label: '1220 × 2440 mm (4×8 pies)', widthMm: 1220, lengthMm: 2440 },
-  { label: '1500 × 3000 mm',            widthMm: 1500, lengthMm: 3000 },
-  { label: '1000 × 3000 mm',            widthMm: 1000, lengthMm: 3000 },
-  { label: '1000 × 6000 mm',            widthMm: 1000, lengthMm: 6000 },
-  { label: '2000 × 4000 mm',            widthMm: 2000, lengthMm: 4000 },
-  { label: 'A medida',                  widthMm: 0,    lengthMm: 0    },
+  { label: '1000 × 2000 mm',            widthM: 1.00, lengthM: 2.00 },
+  { label: '1220 × 2440 mm (4×8 pies)', widthM: 1.22, lengthM: 2.44 },
+  { label: '1500 × 3000 mm',            widthM: 1.50, lengthM: 3.00 },
+  { label: '1000 × 3000 mm',            widthM: 1.00, lengthM: 3.00 },
+  { label: '1000 × 6000 mm',            widthM: 1.00, lengthM: 6.00 },
+  { label: '2000 × 4000 mm',            widthM: 2.00, lengthM: 4.00 },
+  { label: 'A medida',                  widthM: 0,    lengthM: 0    },
 ] as const
 
 // ─────────────────────────────────────────────
@@ -170,14 +228,28 @@ export const MEDIDAS_ESTANDAR = [
 // ─────────────────────────────────────────────
 
 export function calcularPeso(
-  widthMm: number,
-  lengthMm: number,
+  widthM: number,
+  lengthM: number,
   thicknessMm: number,
   material: Material
 ): number {
   const densidad = DENSIDADES[material]
-  const peso = (widthMm / 1000) * (lengthMm / 1000) * (thicknessMm / 1000) * densidad
+  const peso = widthM * lengthM * (thicknessMm / 1000) * densidad
   return Math.round(peso * 100) / 100
+}
+
+export function calcularCantidadChapas(
+  superficieAnchoM: number,
+  superficieLargoM: number,
+  chapaAnchoM: number,
+  chapaLargoM: number,
+  orientacion: 'normal' | 'rotada' = 'normal'
+): number {
+  const cAncho = orientacion === 'normal' ? chapaAnchoM : chapaLargoM
+  const cLargo = orientacion === 'normal' ? chapaLargoM : chapaAnchoM
+  const porAncho = Math.ceil(superficieAnchoM / cAncho)
+  const porLargo = Math.ceil(superficieLargoM / cLargo)
+  return porAncho * porLargo
 }
 
 export function getCalibresPorProyecto(
