@@ -2,8 +2,7 @@
 // Tipos base de MetalApp Pro
 // ─────────────────────────────────────────────
 
-// Material se define en lib/calibres.ts
-// Lo re-exportamos acá para que el resto del proyecto lo importe desde @/types
+// Material vive en calibres.ts — lo re-exportamos desde acá
 export type { Material } from '@/lib/calibres'
 
 export type CustomerType =
