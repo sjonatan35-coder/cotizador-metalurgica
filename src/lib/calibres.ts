@@ -3,7 +3,22 @@ import type { CalibreBwg } from '@/types'
 // ─────────────────────────────────────────────
 // MATERIALES
 // ─────────────────────────────────────────────
-export type Material = 'LAF' | 'LAC' | 'GALVANIZADO'
+export type MaterialBase = 'LAF' | 'LAC' | 'GALVANIZADO'
+export type Acabado = 'liso' | 'estampado' | 'diseño'
+
+export type Material = MaterialBase
+
+export const MATERIAL_BASE_LABELS: Record<MaterialBase, string> = {
+  LAF:         'LAF — Laminado en Frío',
+  LAC:         'LAC — Laminado en Caliente',
+  GALVANIZADO: 'Galvanizado',
+}
+
+export const ACABADO_LABELS: Record<Acabado, string> = {
+  liso:      'Liso',
+  estampado: 'Estampado',
+  diseño:    'A diseño (CNC)',
+}
 
 export const MATERIAL_LABELS: Record<Material, string> = {
   LAF:         'LAF — Laminado en Frío',
@@ -44,7 +59,6 @@ export type LogicaCalculo =
   | 'porton'
   | 'cantidad'
   | 'estampada'
-  | 'whatsapp'
   | 'libre'
 
 export interface Proyecto {
@@ -52,6 +66,7 @@ export interface Proyecto {
   label:               string
   descripcion:         string
   materiales:          Material[]
+  acabados:            Acabado[]
   calibreMin:          number
   calibreMax:          number
   calibreRecomendado:  number
@@ -66,33 +81,39 @@ export const PROYECTOS: Proyecto[] = [
     label:              'Portón',
     descripcion:        'Portones corredizos, batientes o seccionales',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
+    acabados:           ['liso', 'estampado', 'diseño'],
     calibreMin:         14,
-    calibreMax:         18,
+    calibreMax:         20,
     calibreRecomendado: 16,
     logica:             'porton',
+    nota:               'c16 LAF para interior — c16 Galvanizado para mayor durabilidad',
   },
   {
     id:                 'piso',
     label:              'Piso',
     descripcion:        'Pisos industriales, plataformas y entrepanos',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
+    acabados:           ['liso', 'estampado', 'diseño'],
     calibreMin:         14,
-    calibreMax:         16,
-    calibreRecomendado: 14,
+    calibreMax:         18,
+    calibreRecomendado: 16,
     logica:             'superficie',
+    nota:               'c16 LAF recomendado para interior',
   },
   {
     id:                 'techo',
     label:              'Techo',
     descripcion:        'Chapas para techos y cubiertas',
     materiales:         ['GALVANIZADO'],
-    calibreMin:         22,
+    acabados:           ['liso', 'estampado', 'diseño'],
+    calibreMin:         24,
     calibreMax:         27,
     calibreRecomendado: 25,
     logica:             'superficie',
     medidasEspeciales: [
       { label: '1000 × 3000 mm', widthM: 1.00, lengthM: 3.00 },
       { label: '1000 × 6000 mm', widthM: 1.00, lengthM: 6.00 },
+      { label: 'A medida',       widthM: 0,    lengthM: 0    },
     ],
     nota: 'El calibre 25 galvanizado es el más usado para techos',
   },
@@ -101,16 +122,19 @@ export const PROYECTOS: Proyecto[] = [
     label:              'Estructura',
     descripcion:        'Estructuras metálicas, vigas y refuerzos',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
-    calibreMin:         10,
-    calibreMax:         14,
-    calibreRecomendado: 12,
+    acabados:           ['liso', 'estampado', 'diseño'],
+    calibreMin:         14,
+    calibreMax:         18,
+    calibreRecomendado: 14,
     logica:             'superficie',
+    nota:               'c14 LAC recomendado para estructuras',
   },
   {
     id:                 'zingueria',
     label:              'Zinguería',
     descripcion:        'Chapas finas para revestimientos y terminaciones',
     materiales:         ['GALVANIZADO'],
+    acabados:           ['liso', 'estampado', 'diseño'],
     calibreMin:         28,
     calibreMax:         34,
     calibreRecomendado: 30,
@@ -122,24 +146,28 @@ export const PROYECTOS: Proyecto[] = [
     label:              'Trailer',
     descripcion:        'Pisos y laterales para trailers y acoplados',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
+    acabados:           ['liso', 'estampado', 'diseño'],
     calibreMin:         14,
     calibreMax:         18,
-    calibreRecomendado: 16,
+    calibreRecomendado: 14,
     logica:             'superficie',
+    nota:               'c14 LAC estampado recomendado para pisos de trailer',
   },
   {
     id:                 'estampada',
     label:              'Chapa Estampada',
     descripcion:        'Chapa con relieve de fábrica — LAF, LAC o Galvanizado',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
+    acabados:           ['estampado', 'diseño'],
     calibreMin:         14,
-    calibreMax:         22,
+    calibreMax:         18,
     calibreRecomendado: 18,
     logica:             'estampada',
     medidasEspeciales: [
       { label: '1000 × 2000 mm (queda 1000×1980)', widthM: 1.00, lengthM: 1.98 },
       { label: '1220 × 2440 mm (queda 1220×2420)', widthM: 1.22, lengthM: 2.42 },
       { label: '1500 × 3000 mm (queda 1500×2980)', widthM: 1.50, lengthM: 2.98 },
+      { label: 'A medida',                          widthM: 0,    lengthM: 0    },
     ],
     nota: 'Las chapas estampadas pierden 2cm de largo por el proceso de estampado',
   },
@@ -148,18 +176,20 @@ export const PROYECTOS: Proyecto[] = [
     label:              'Corte CNC',
     descripcion:        'Diseños y cortes especiales a medida del cliente',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
-    calibreMin:         7,
+    acabados:           ['diseño'],
+    calibreMin:         14,
     calibreMax:         27,
     calibreRecomendado: 16,
-    logica:             'whatsapp',
-    nota:               'Servicio especial — te contactamos para coordinar tu diseño',
+    logica:             'libre',
+    nota:               'Servicio especial — completá el pedido y te contactamos',
   },
   {
     id:                 'otros',
     label:              'Otros',
     descripcion:        'Armá tu pedido a medida — chapas, calibres y materiales a elección',
     materiales:         ['LAF', 'LAC', 'GALVANIZADO'],
-    calibreMin:         7,
+    acabados:           ['liso', 'estampado', 'diseño'],
+    calibreMin:         14,
     calibreMax:         34,
     calibreRecomendado: 16,
     logica:             'libre',
@@ -171,13 +201,6 @@ export const PROYECTOS: Proyecto[] = [
 // CALIBRES BWG
 // ─────────────────────────────────────────────
 export const CALIBRES_BWG: CalibreBwg[] = [
-  { calibre: 7,  thicknessMm: 4.572, thicknessIn: 0.180 },
-  { calibre: 8,  thicknessMm: 4.191, thicknessIn: 0.165 },
-  { calibre: 9,  thicknessMm: 3.759, thicknessIn: 0.148 },
-  { calibre: 10, thicknessMm: 3.404, thicknessIn: 0.134 },
-  { calibre: 11, thicknessMm: 3.048, thicknessIn: 0.120 },
-  { calibre: 12, thicknessMm: 2.769, thicknessIn: 0.109 },
-  { calibre: 13, thicknessMm: 2.413, thicknessIn: 0.095 },
   { calibre: 14, thicknessMm: 2.108, thicknessIn: 0.083 },
   { calibre: 15, thicknessMm: 1.829, thicknessIn: 0.072 },
   { calibre: 16, thicknessMm: 1.651, thicknessIn: 0.065 },
@@ -217,9 +240,6 @@ export const MEDIDAS_ESTANDAR = [
   { label: '1000 × 2000 mm',            widthM: 1.00, lengthM: 2.00 },
   { label: '1220 × 2440 mm (4×8 pies)', widthM: 1.22, lengthM: 2.44 },
   { label: '1500 × 3000 mm',            widthM: 1.50, lengthM: 3.00 },
-  { label: '1000 × 3000 mm',            widthM: 1.00, lengthM: 3.00 },
-  { label: '1000 × 6000 mm',            widthM: 1.00, lengthM: 6.00 },
-  { label: '2000 × 4000 mm',            widthM: 2.00, lengthM: 4.00 },
   { label: 'A medida',                  widthM: 0,    lengthM: 0    },
 ] as const
 
@@ -238,6 +258,16 @@ export function calcularPeso(
   return Math.round(peso * 100) / 100
 }
 
+export function calcularPesoTotal(
+  widthM: number,
+  lengthM: number,
+  thicknessMm: number,
+  material: Material,
+  cantidad: number
+): number {
+  return Math.round(calcularPeso(widthM, lengthM, thicknessMm, material) * cantidad * 100) / 100
+}
+
 export function calcularCantidadChapas(
   superficieAnchoM: number,
   superficieLargoM: number,
@@ -252,24 +282,24 @@ export function calcularCantidadChapas(
   return porAncho * porLargo
 }
 
-export function getCalibresPorProyecto(
-  proyectoId: string,
-  soloRecomendados = false
-): CalibreBwg[] {
+export function calcularChapasPorTonelada(
+  toneladas: number,
+  widthM: number,
+  lengthM: number,
+  thicknessMm: number,
+  material: Material
+): number {
+  const pesoPorChapa = calcularPeso(widthM, lengthM, thicknessMm, material)
+  if (pesoPorChapa <= 0) return 0
+  return Math.ceil((toneladas * 1000) / pesoPorChapa)
+}
+
+export function getCalibresPorProyecto(proyectoId: string): CalibreBwg[] {
   const proyecto = PROYECTOS.find(p => p.id === proyectoId)
   if (!proyecto) return CALIBRES_BWG
-  if (soloRecomendados) {
-    return CALIBRES_BWG.filter(
-      c => c.calibre >= proyecto.calibreMin && c.calibre <= proyecto.calibreMax
-    )
-  }
-  const recomendados = CALIBRES_BWG.filter(
+  return CALIBRES_BWG.filter(
     c => c.calibre >= proyecto.calibreMin && c.calibre <= proyecto.calibreMax
   )
-  const resto = CALIBRES_BWG.filter(
-    c => c.calibre < proyecto.calibreMin || c.calibre > proyecto.calibreMax
-  )
-  return [...recomendados, ...resto]
 }
 
 export function getCalibre(calibreNum: number): CalibreBwg | undefined {
