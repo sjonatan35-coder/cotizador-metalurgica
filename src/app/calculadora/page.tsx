@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   DoorOpen, Layers, Home, Grid3x3,
-  Scissors, Truck, Cpu, Lightbulb,
+  Scissors, Truck, Lightbulb,
   Hammer, MessageCircle, ChevronRight,
   type LucideIcon
 } from 'lucide-react'
@@ -40,6 +40,7 @@ const MATERIAL_INFO: Record<Material, { label: string; descripcion: string }> = 
 
 // ─── Número de teléfono de WhatsApp ────────────
 const WA_NUMBER = '5491159396358'
+
 export default function CalculadoraPage() {
   const [paso, setPaso] = useState<1 | 2>(1)
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState<Proyecto | null>(null)
@@ -68,11 +69,24 @@ export default function CalculadoraPage() {
     setPaso(2)
   }
 
-  // Volver al Paso 1
-  function volverAlInicio() {
-    setPaso(1)
-    setProyectoSeleccionado(null)
-    setMaterialSeleccionado(null)
+  // Volver al paso anterior (no siempre al inicio)
+  function volverAtras() {
+    if (paso === 2 && materialSeleccionado) {
+      // Tenía material elegido → volver a elegir material
+      // (pero solo si el proyecto tiene más de 1 material, si no volver al paso 1)
+      if (proyectoSeleccionado && proyectoSeleccionado.materiales.length > 1) {
+        setMaterialSeleccionado(null)
+      } else {
+        setPaso(1)
+        setProyectoSeleccionado(null)
+        setMaterialSeleccionado(null)
+      }
+    } else {
+      // Estaba eligiendo material → volver al Paso 1
+      setPaso(1)
+      setProyectoSeleccionado(null)
+      setMaterialSeleccionado(null)
+    }
   }
 
   return (
@@ -136,7 +150,7 @@ export default function CalculadoraPage() {
         {paso === 2 && proyectoSeleccionado && !materialSeleccionado && (
           <div>
             <button
-              onClick={volverAlInicio}
+              onClick={volverAtras}
               className="text-brand-accent text-sm mb-4 flex items-center gap-1"
             >
               ← Volver
@@ -171,7 +185,7 @@ export default function CalculadoraPage() {
         {paso === 2 && proyectoSeleccionado && materialSeleccionado && (
           <div>
             <button
-              onClick={volverAlInicio}
+              onClick={volverAtras}
               className="text-brand-accent text-sm mb-4 flex items-center gap-1"
             >
               ← Volver
