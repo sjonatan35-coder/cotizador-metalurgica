@@ -4,11 +4,11 @@ import { useState } from 'react'
 import {
   DoorOpen, Layers, Home, Grid3x3,
   Scissors, Truck, Cpu, Lightbulb,
+  Hammer, MessageCircle,
   type LucideIcon
 } from 'lucide-react'
 import { PROYECTOS, type Proyecto } from '@/lib/calibres'
 
-// Ícono por proyecto
 const ICONOS: Record<string, LucideIcon> = {
   porton:     DoorOpen,
   piso:       Layers,
@@ -16,7 +16,8 @@ const ICONOS: Record<string, LucideIcon> = {
   estructura: Grid3x3,
   zingueria:  Scissors,
   trailer:    Truck,
-  estampado:  Cpu,
+  estampada:  Hammer,
+  cnc:        MessageCircle,
   otros:      Lightbulb,
 }
 
@@ -47,6 +48,7 @@ export default function CalculadoraPage() {
             <div className="grid grid-cols-2 gap-3">
               {PROYECTOS.map((proyecto) => {
                 const Icono = ICONOS[proyecto.id]
+                if (!Icono) return null
                 return (
                   <button
                     key={proyecto.id}
@@ -78,6 +80,7 @@ export default function CalculadoraPage() {
               <div className="bg-brand-light rounded-lg p-3 w-fit">
                 {(() => {
                   const Icono = ICONOS[proyectoSeleccionado.id]
+                  if (!Icono) return null
                   return <Icono className="text-brand-accent" size={32} />
                 })()}
               </div>
