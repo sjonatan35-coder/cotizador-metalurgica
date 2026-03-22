@@ -16,7 +16,6 @@ import {
 } from '@/lib/calibres'
 import type { CalibreBwg } from '@/types'
 
-// ─── Íconos por proyecto ───────────────────────
 const ICONOS: Record<string, LucideIcon> = {
   porton:     DoorOpen,
   piso:       Layers,
@@ -68,27 +67,22 @@ const WA_NUMBER = '5491159396358'
 
 export default function CalculadoraPage() {
   const [paso, setPaso] = useState<Paso>(1)
-  const [proyectoSeleccionado, setProyectoSeleccionado]   = useState<Proyecto | null>(null)
-  const [materialSeleccionado, setMaterialSeleccionado]   = useState<Material | null>(null)
-  const [acabadoSeleccionado,  setAcabadoSeleccionado]    = useState<Acabado | null>(null)
-  const [calibreSeleccionado,  setCalibreSeleccionado]    = useState<CalibreBwg | null>(null)
+  const [proyectoSeleccionado, setProyectoSeleccionado] = useState<Proyecto | null>(null)
+  const [materialSeleccionado, setMaterialSeleccionado] = useState<Material | null>(null)
+  const [acabadoSeleccionado,  setAcabadoSeleccionado]  = useState<Acabado | null>(null)
+  const [calibreSeleccionado,  setCalibreSeleccionado]  = useState<CalibreBwg | null>(null)
 
-  // Medida de chapa
-  const [medidaIdx,     setMedidaIdx]     = useState(0)
-  const [aMedidaAncho,  setAMedidaAncho]  = useState('')
-  const [aMedidaLargo,  setAMedidaLargo]  = useState('')
+  const [medidaIdx,    setMedidaIdx]    = useState(0)
+  const [aMedidaAncho, setAMedidaAncho] = useState('')
+  const [aMedidaLargo, setAMedidaLargo] = useState('')
 
-  // Superficie / portón
   const [supAncho,    setSupAncho]    = useState('')
   const [supLargo,    setSupLargo]    = useState('')
   const [orientacion, setOrientacion] = useState<Orientacion>('vertical')
 
-  // Modo de cálculo
   const [modoCalculo,     setModoCalculo]     = useState<ModoCalculo>('superficie')
   const [cantidadDirecta, setCantidadDirecta] = useState(1)
   const [toneladas,       setToneladas]       = useState('')
-
-  // ── helpers ──────────────────────────────────
 
   function getMedidas() {
     if (!proyectoSeleccionado) return MEDIDAS_ESTANDAR
@@ -111,7 +105,6 @@ export default function CalculadoraPage() {
   function getChapaLargo() {
     if (esAMedida()) return parseFloat(aMedidaLargo) || 0
     const largo = getMedidas()[medidaIdx]?.lengthM ?? 0
-    // Si el acabado es estampado, descontar merma
     if (acabadoSeleccionado === 'estampado' || proyectoSeleccionado?.logica === 'estampada') {
       return largo - MERMA_ESTAMPADO_M
     }
@@ -132,7 +125,6 @@ export default function CalculadoraPage() {
       return calcularChapasPorTonelada(t, chapaAncho, chapaLargo, calibreSeleccionado.thicknessMm, materialSeleccionado)
     }
 
-    // superficie / porton / libre
     const ancho = parseFloat(supAncho) || 0
     const largo  = parseFloat(supLargo) || 0
     if (ancho <= 0 || largo <= 0) return null
@@ -151,8 +143,6 @@ export default function CalculadoraPage() {
     return calcularPesoTotal(getChapaAncho(), getChapaLargo(), calibreSeleccionado.thicknessMm, materialSeleccionado, chapas)
   }
 
-  // ── navegación ───────────────────────────────
-
   function elegirProyecto(proyecto: Proyecto) {
     setProyectoSeleccionado(proyecto)
     setMaterialSeleccionado(null)
@@ -161,8 +151,6 @@ export default function CalculadoraPage() {
     setMedidaIdx(0)
     setSupAncho(''); setSupLargo('')
     setModoCalculo('superficie')
-
-    // Techo solo tiene GALVANIZADO → saltea material
     if (proyecto.materiales.length === 1) {
       setMaterialSeleccionado(proyecto.materiales[0])
       setPaso(3)
@@ -174,13 +162,11 @@ export default function CalculadoraPage() {
   function elegirMaterial(material: Material) {
     setMaterialSeleccionado(material)
     setAcabadoSeleccionado(null)
-    // Estampada solo tiene acabados estampado/diseño → saltea si 1 solo acabado
     setPaso(3)
   }
 
   function elegirAcabado(acabado: Acabado) {
     setAcabadoSeleccionado(acabado)
-    // Setear calibre recomendado por defecto
     if (proyectoSeleccionado) {
       const calibres = getCalibresPorProyecto(proyectoSeleccionado.id)
       const rec = calibres.find(c => c.calibre === proyectoSeleccionado.calibreRecomendado)
@@ -191,23 +177,16 @@ export default function CalculadoraPage() {
 
   function volverAtras() {
     if (paso === 2) {
-      setPaso(1)
-      setProyectoSeleccionado(null)
+      setPaso(1); setProyectoSeleccionado(null)
     } else if (paso === 3) {
-      // Si salteo material (1 solo material) volver al paso 1
       if (proyectoSeleccionado && proyectoSeleccionado.materiales.length === 1) {
-        setPaso(1)
-        setProyectoSeleccionado(null)
-        setMaterialSeleccionado(null)
+        setPaso(1); setProyectoSeleccionado(null); setMaterialSeleccionado(null)
       } else {
-        setPaso(2)
-        setMaterialSeleccionado(null)
+        setPaso(2); setMaterialSeleccionado(null)
       }
       setAcabadoSeleccionado(null)
     } else if (paso === 4) {
-      setPaso(3)
-      setAcabadoSeleccionado(null)
-      setCalibreSeleccionado(null)
+      setPaso(3); setAcabadoSeleccionado(null); setCalibreSeleccionado(null)
     } else if (paso === 5) {
       setPaso(4)
     }
@@ -220,9 +199,8 @@ export default function CalculadoraPage() {
     const medidaLabel = esAMedida()
       ? `${aMedidaAncho}m × ${aMedidaLargo}m (a medida)`
       : medida?.label ?? ''
-
     const lines = [
-      '🏭 *Pedido MetalApp Pro — La Metalúrgica*',
+      '🏭 *Pedido — La Cooperativa Metalúrgica Argentina*',
       '',
       `📦 Proyecto: ${proyectoSeleccionado?.label}`,
       `🔩 Material: ${materialSeleccionado} — ${ACABADO_LABELS[acabadoSeleccionado!]}`,
@@ -240,7 +218,6 @@ export default function CalculadoraPage() {
   const pesoCalculado    = calcularPesoResultado()
   const logica           = proyectoSeleccionado?.logica
 
-  // ── barra de progreso ────────────────────────
   function clsPaso(p: number) {
     if (paso === p) return 'font-bold text-brand-accent'
     if (paso > p)   return 'text-gray-400'
@@ -250,10 +227,17 @@ export default function CalculadoraPage() {
   return (
     <main className="min-h-screen bg-brand-light">
 
-      {/* Header */}
-      <div className="bg-brand-navy text-white p-6">
-        <h1 className="text-2xl font-bold">🏭 La Metalúrgica</h1>
-        <p className="text-sm text-blue-300 mt-1">Cooperativa Argentina — Calculadora de chapas</p>
+      {/* Header con logo real */}
+      <div className="bg-brand-navy text-white p-4 flex items-center gap-3">
+        <img
+          src="/logo.jpg"
+          alt="La Cooperativa Metalúrgica Argentina"
+          className="h-10 w-10 rounded-lg object-cover"
+        />
+        <div>
+          <h1 className="text-base font-bold leading-tight">La Metalúrgica</h1>
+          <p className="text-xs text-blue-300">Cooperativa Argentina — Calculadora de chapas</p>
+        </div>
       </div>
 
       {/* Barra de progreso */}
@@ -271,7 +255,7 @@ export default function CalculadoraPage() {
 
       <div className="p-6 max-w-2xl mx-auto">
 
-        {/* ── PASO 1 — Proyecto ── */}
+        {/* PASO 1 — Proyecto */}
         {paso === 1 && (
           <div>
             <h2 className="text-xl font-bold text-brand-navy mb-2">¿Para qué es tu proyecto?</h2>
@@ -298,7 +282,7 @@ export default function CalculadoraPage() {
           </div>
         )}
 
-        {/* ── PASO 2 — Material ── */}
+        {/* PASO 2 — Material */}
         {paso === 2 && proyectoSeleccionado && (
           <div>
             <button onClick={volverAtras} className="text-brand-accent text-sm mb-4 flex items-center gap-1">← Volver</button>
@@ -322,19 +306,16 @@ export default function CalculadoraPage() {
           </div>
         )}
 
-        {/* ── PASO 3 — Acabado ── */}
+        {/* PASO 3 — Acabado */}
         {paso === 3 && proyectoSeleccionado && materialSeleccionado && (
           <div>
             <button onClick={volverAtras} className="text-brand-accent text-sm mb-4 flex items-center gap-1">← Volver</button>
-
             <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-6 flex gap-4 text-sm">
               <div><p className="text-gray-400 text-xs">Proyecto</p><p className="font-bold text-brand-navy">{proyectoSeleccionado.label}</p></div>
               <div><p className="text-gray-400 text-xs">Material</p><p className="font-bold text-brand-navy">{MATERIAL_INFO[materialSeleccionado].label}</p></div>
             </div>
-
             <h2 className="text-xl font-bold text-brand-navy mb-2">¿Qué tipo de chapa necesitás?</h2>
             <p className="text-gray-500 text-sm mb-6">Elegí el acabado para tu proyecto.</p>
-
             <div className="flex flex-col gap-3">
               {proyectoSeleccionado.acabados.map((acabado) => {
                 const info = ACABADO_INFO[acabado]
@@ -358,19 +339,15 @@ export default function CalculadoraPage() {
           </div>
         )}
 
-        {/* ── PASO 4 — Calibre + Medidas ── */}
+        {/* PASO 4 — Calibre + Medidas */}
         {paso === 4 && proyectoSeleccionado && materialSeleccionado && acabadoSeleccionado && (
           <div>
             <button onClick={volverAtras} className="text-brand-accent text-sm mb-4 flex items-center gap-1">← Volver</button>
-
-            {/* Resumen */}
             <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-6 flex flex-wrap gap-4 text-sm">
               <div><p className="text-gray-400 text-xs">Proyecto</p><p className="font-bold text-brand-navy">{proyectoSeleccionado.label}</p></div>
               <div><p className="text-gray-400 text-xs">Material</p><p className="font-bold text-brand-navy">{MATERIAL_INFO[materialSeleccionado].label}</p></div>
               <div><p className="text-gray-400 text-xs">Acabado</p><p className="font-bold text-brand-navy">{ACABADO_INFO[acabadoSeleccionado].label}</p></div>
             </div>
-
-            {/* Calibre */}
             <h3 className="font-bold text-brand-navy mb-1">Calibre BWG</h3>
             <p className="text-xs text-gray-400 mb-3">Rango recomendado para {proyectoSeleccionado.label.toLowerCase()}: c{proyectoSeleccionado.calibreMin} al c{proyectoSeleccionado.calibreMax}</p>
             <div className="flex flex-wrap gap-2 mb-6">
@@ -391,8 +368,6 @@ export default function CalculadoraPage() {
                 )
               })}
             </div>
-
-            {/* Medida */}
             <h3 className="font-bold text-brand-navy mb-3">Medida de la chapa</h3>
             <div className="flex flex-col gap-2 mb-4">
               {getMedidas().map((m, idx) => (
@@ -406,7 +381,6 @@ export default function CalculadoraPage() {
                 </button>
               ))}
             </div>
-
             {esAMedida() && (
               <div className="flex gap-3 mb-4">
                 <div className="flex-1">
@@ -421,8 +395,6 @@ export default function CalculadoraPage() {
                 </div>
               </div>
             )}
-
-            {/* Modo de cálculo */}
             <h3 className="font-bold text-brand-navy mb-3">¿Cómo querés calcular?</h3>
             <div className="flex gap-2 mb-4">
               {(['superficie', 'cantidad', 'tonelada'] as ModoCalculo[]).map(m => (
@@ -433,8 +405,6 @@ export default function CalculadoraPage() {
                 </button>
               ))}
             </div>
-
-            {/* Portón — orientación */}
             {modoCalculo === 'superficie' && logica === 'porton' && (
               <div className="mb-4">
                 <p className="text-xs text-gray-500 mb-2">Orientación de la chapa</p>
@@ -449,8 +419,6 @@ export default function CalculadoraPage() {
                 </div>
               </div>
             )}
-
-            {/* Superficie inputs */}
             {modoCalculo === 'superficie' && (
               <div className="flex gap-3 mb-4">
                 <div className="flex-1">
@@ -465,8 +433,6 @@ export default function CalculadoraPage() {
                 </div>
               </div>
             )}
-
-            {/* Cantidad directa */}
             {modoCalculo === 'cantidad' && (
               <div className="flex items-center gap-4 mb-4">
                 <button onClick={() => setCantidadDirecta(v => Math.max(1, v - 1))}
@@ -477,8 +443,6 @@ export default function CalculadoraPage() {
                 <span className="text-sm text-gray-500">chapas</span>
               </div>
             )}
-
-            {/* Tonelada */}
             {modoCalculo === 'tonelada' && (
               <div className="mb-4">
                 <label className="text-xs text-gray-500 mb-1 block">Toneladas</label>
@@ -486,8 +450,6 @@ export default function CalculadoraPage() {
                   className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-brand-accent outline-none" />
               </div>
             )}
-
-            {/* Preview chapas */}
             {chapasCalculadas !== null && chapasCalculadas > 0 && (
               <div className="bg-blue-50 border-2 border-brand-accent rounded-xl p-4 mb-6 text-center">
                 <p className="text-sm text-brand-accent mb-1">Chapas necesarias</p>
@@ -495,7 +457,6 @@ export default function CalculadoraPage() {
                 <p className="text-xs text-gray-500 mt-1">chapas</p>
               </div>
             )}
-
             <button
               onClick={() => setPaso(5)}
               disabled={!calibreSeleccionado || chapasCalculadas === null || chapasCalculadas <= 0}
@@ -506,13 +467,11 @@ export default function CalculadoraPage() {
           </div>
         )}
 
-        {/* ── PASO 5 — Resultado ── */}
+        {/* PASO 5 — Resultado */}
         {paso === 5 && proyectoSeleccionado && materialSeleccionado && acabadoSeleccionado && calibreSeleccionado && (
           <div>
             <button onClick={volverAtras} className="text-brand-accent text-sm mb-4 flex items-center gap-1">← Volver</button>
-
             <h2 className="text-xl font-bold text-brand-navy mb-6">Tu pedido</h2>
-
             <div className="bg-white rounded-xl border-2 border-brand-accent p-5 mb-6 flex flex-col gap-3">
               <div className="flex justify-between text-sm"><span className="text-gray-400">Proyecto</span><span className="font-bold text-brand-navy">{proyectoSeleccionado.label}</span></div>
               <div className="flex justify-between text-sm"><span className="text-gray-400">Material</span><span className="font-bold text-brand-navy">{MATERIAL_INFO[materialSeleccionado].label}</span></div>
@@ -522,14 +481,12 @@ export default function CalculadoraPage() {
               <div className="border-t border-gray-100 pt-3 flex justify-between text-sm"><span className="text-gray-400">Cantidad</span><span className="font-bold text-brand-navy text-lg">{chapasCalculadas} chapas</span></div>
               <div className="flex justify-between text-sm"><span className="text-gray-400">Peso total</span><span className="font-bold text-brand-navy">{pesoCalculado?.toFixed(2)} kg</span></div>
             </div>
-
             <button
               onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${generarMensajeWA()}`, '_blank')}
               className="w-full bg-green-500 hover:bg-green-600 text-white rounded-xl py-4 font-bold text-base transition-all flex items-center justify-center gap-2"
             >
               📲 Enviar pedido por WhatsApp
             </button>
-
             <button
               onClick={() => { setPaso(1); setProyectoSeleccionado(null); setMaterialSeleccionado(null); setAcabadoSeleccionado(null); setCalibreSeleccionado(null); }}
               className="w-full mt-3 py-3 text-brand-accent text-sm font-medium"
