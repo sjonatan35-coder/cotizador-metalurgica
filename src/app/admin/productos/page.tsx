@@ -17,7 +17,7 @@ type Producto = {
 type Tab = 'nuevo' | 'csv' | 'catalogo'
 
 const TIPOS_BASE = ['Chapa', 'Caño', 'Fierro', 'Otro']
-const UNIDADES = ['Unidad', 'kg', 'Metro', 'Rollo']
+const UNIDADES = ['Unidad', 'kg', 'Tonelada', 'Metro', 'Rollo']
 
 const badgeStyle = (activo: boolean): React.CSSProperties => ({
   display: 'inline-block',
