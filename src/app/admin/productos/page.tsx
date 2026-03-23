@@ -9,6 +9,7 @@ type Producto = {
   id: string
   nombre: string
   tipo: string
+  subtipo: string | null
   unidad: string[]
   descripcion: string | null
   activo: boolean
@@ -17,6 +18,11 @@ type Producto = {
 type Tab = 'nuevo' | 'csv' | 'catalogo'
 
 const TIPOS_BASE = ['Chapa', 'Caño', 'Fierro', 'Otro']
+
+const SUBTIPOS: Record<string, string[]> = {
+  'Chapa': ['LAF', 'LAC', 'GALVANIZADO', 'ESTAMPADO', 'CNC'],
+}
+
 const UNIDADES = ['Unidad', 'kg', 'Tonelada', 'Metro', 'Rollo']
 
 const badgeStyle = (activo: boolean): React.CSSProperties => ({
@@ -53,6 +59,7 @@ export default function AdminProductos() {
   const [form, setForm] = useState({
     nombre: '',
     tipo: 'Chapa',
+    subtipo: '',
     unidades: [] as string[],
     descripcion: '',
     activo: true,
@@ -102,16 +109,19 @@ export default function AdminProductos() {
 
     setCargando(true)
 
+    const payload = {
+      nombre: form.nombre.trim(),
+      tipo: tipoFinal,
+      subtipo: form.subtipo || null,
+      unidad: form.unidades,
+      descripcion: form.descripcion.trim() || null,
+      activo: form.activo,
+    }
+
     if (editandoId) {
       const { error } = await supabase
         .from('productos')
-        .update({
-          nombre: form.nombre.trim(),
-          tipo: tipoFinal,
-          unidad: form.unidades,
-          descripcion: form.descripcion.trim() || null,
-          activo: form.activo,
-        })
+        .update(payload)
         .eq('id', editandoId)
 
       if (error) {
@@ -125,13 +135,7 @@ export default function AdminProductos() {
     } else {
       const { error } = await supabase
         .from('productos')
-        .insert({
-          nombre: form.nombre.trim(),
-          tipo: tipoFinal,
-          unidad: form.unidades,
-          descripcion: form.descripcion.trim() || null,
-          activo: form.activo,
-        })
+        .insert(payload)
 
       if (error) {
         mostrarMensaje('Error al guardar: ' + error.message, 'error')
@@ -147,7 +151,7 @@ export default function AdminProductos() {
   }
 
   const resetForm = () => {
-    setForm({ nombre: '', tipo: 'Chapa', unidades: [], descripcion: '', activo: true, tipoNuevo: '' })
+    setForm({ nombre: '', tipo: 'Chapa', subtipo: '', unidades: [], descripcion: '', activo: true, tipoNuevo: '' })
   }
 
   const toggleActivo = async (producto: Producto) => {
@@ -170,6 +174,7 @@ export default function AdminProductos() {
     setForm({
       nombre: p.nombre,
       tipo: p.tipo,
+      subtipo: p.subtipo || '',
       unidades: Array.isArray(p.unidad) ? p.unidad : [p.unidad],
       descripcion: p.descripcion || '',
       activo: p.activo,
@@ -214,6 +219,7 @@ export default function AdminProductos() {
         rows.push({
           nombre: row['nombre'],
           tipo: row['tipo'] || 'Otro',
+          subtipo: row['subtipo'] || null,
           unidad: row['unidad'] ? row['unidad'].split('|').map(u => u.trim()) : ['Unidad'],
           descripcion: row['descripcion'] || null,
           activo: row['activo'] !== 'false',
@@ -406,37 +412,45 @@ export default function AdminProductos() {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-              <div>
-                <label style={s.label}>Tipo</label>
-                <select style={s.select} value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
-                  {tiposDisponibles.map(t => <option key={t} value={t}>{t}</option>)}
-                  <option value="__nuevo__">+ Tipo nuevo...</option>
-                </select>
-              </div>
-              <div>
-                <label style={s.label}>Unidades de venta</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-                  {UNIDADES.map(u => (
-                    <label key={u} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#0B1F3A', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={form.unidades.includes(u)}
-                        onChange={e => {
-                          if (e.target.checked) {
-                            setForm(f => ({ ...f, unidades: [...f.unidades, u] }))
-                          } else {
-                            setForm(f => ({ ...f, unidades: f.unidades.filter(x => x !== u) }))
-                          }
-                        }}
-                        style={{ width: 16, height: 16, accentColor: '#1E6AC8' }}
-                      />
-                      {u}
-                    </label>
+            <div style={{ marginBottom: 14 }}>
+              <label style={s.label}>Tipo</label>
+              <select
+                style={s.select}
+                value={form.tipo}
+                onChange={e => setForm(f => ({ ...f, tipo: e.target.value, subtipo: '' }))}
+              >
+                {tiposDisponibles.map(t => <option key={t} value={t}>{t}</option>)}
+                <option value="__nuevo__">+ Tipo nuevo...</option>
+              </select>
+            </div>
+
+            {SUBTIPOS[form.tipo] && (
+              <div style={{ marginBottom: 14 }}>
+                <label style={s.label}>Material</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {SUBTIPOS[form.tipo].map(sub => (
+                    <button
+                      key={sub}
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, subtipo: f.subtipo === sub ? '' : sub }))}
+                      style={{
+                        padding: '7px 16px',
+                        fontSize: 13,
+                        borderRadius: 99,
+                        border: `1px solid ${form.subtipo === sub ? '#1E6AC8' : '#d1dce8'}`,
+                        background: form.subtipo === sub ? '#1E6AC8' : '#fff',
+                        color: form.subtipo === sub ? '#fff' : '#0B1F3A',
+                        cursor: 'pointer',
+                        fontWeight: form.subtipo === sub ? 600 : 400,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {sub}
+                    </button>
                   ))}
                 </div>
               </div>
-            </div>
+            )}
 
             {form.tipo === '__nuevo__' && (
               <div style={{ marginBottom: 14 }}>
@@ -449,6 +463,29 @@ export default function AdminProductos() {
                 />
               </div>
             )}
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={s.label}>Unidades de venta</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {UNIDADES.map(u => (
+                  <label key={u} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#0B1F3A', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.unidades.includes(u)}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setForm(f => ({ ...f, unidades: [...f.unidades, u] }))
+                        } else {
+                          setForm(f => ({ ...f, unidades: f.unidades.filter(x => x !== u) }))
+                        }
+                      }}
+                      style={{ width: 16, height: 16, accentColor: '#1E6AC8' }}
+                    />
+                    {u}
+                  </label>
+                ))}
+              </div>
+            </div>
 
             <div style={{ marginBottom: 14 }}>
               <label style={s.label}>Descripción (opcional)</label>
@@ -495,10 +532,10 @@ export default function AdminProductos() {
               <p style={{ fontSize: 13, fontWeight: 600, color: '#0B1F3A', margin: '0 0 8px' }}>Formato del CSV</p>
               <p style={{ fontSize: 12, color: '#4A7BB5', margin: '0 0 6px' }}>Primera fila debe tener estos encabezados:</p>
               <code style={{ display: 'block', background: '#f1f5fb', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: '#1A4B8C', lineHeight: 1.6 }}>
-                nombre,tipo,unidad,descripcion,activo
+                nombre,tipo,subtipo,unidad,descripcion,activo
               </code>
               <p style={{ fontSize: 11, color: '#4A7BB5', margin: '8px 0 0' }}>
-                unidad: separá múltiples con | — Ej: Unidad|kg|Tonelada
+                subtipo: LAF/LAC/GALVANIZADO/ESTAMPADO/CNC (solo para Chapa) — unidad: separá múltiples con | — Ej: Unidad|kg
               </p>
             </div>
 
@@ -528,8 +565,9 @@ export default function AdminProductos() {
                     <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 500, color: '#0B1F3A' }}>{p.nombre}</p>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <span style={tipoBadgeStyle}>{p.tipo}</span>
+                      {p.subtipo && <span style={{ ...tipoBadgeStyle, background: '#E6F1FB', color: '#185FA5' }}>{p.subtipo}</span>}
                       {p.unidad.map(u => (
-                        <span key={u} style={{ ...tipoBadgeStyle, background: '#E6F1FB', color: '#185FA5' }}>{u}</span>
+                        <span key={u} style={{ ...tipoBadgeStyle, background: '#FAEEDA', color: '#854F0B' }}>{u}</span>
                       ))}
                       <span style={badgeStyle(p.activo)}>{p.activo ? 'Activo' : 'Inactivo'}</span>
                     </div>
@@ -585,8 +623,9 @@ export default function AdminProductos() {
                     <p style={{ margin: '0 0 5px', fontSize: 14, fontWeight: 600, color: '#0B1F3A' }}>{p.nombre}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: p.descripcion ? 6 : 0 }}>
                       <span style={tipoBadgeStyle}>{p.tipo}</span>
+                      {p.subtipo && <span style={{ ...tipoBadgeStyle, background: '#E6F1FB', color: '#185FA5' }}>{p.subtipo}</span>}
                       {Array.isArray(p.unidad) && p.unidad.map(u => (
-                        <span key={u} style={{ ...tipoBadgeStyle, background: '#E6F1FB', color: '#185FA5' }}>{u}</span>
+                        <span key={u} style={{ ...tipoBadgeStyle, background: '#FAEEDA', color: '#854F0B' }}>{u}</span>
                       ))}
                       <span style={badgeStyle(p.activo)}>{p.activo ? 'Activo' : 'Inactivo'}</span>
                     </div>
