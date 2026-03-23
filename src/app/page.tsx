@@ -3,18 +3,18 @@
 export default function Home() {
   return (
     <main className="min-h-screen" style={{ background: '#0B1F3A' }}>
-      <div className="min-h-screen flex flex-col" style={{ backgroundImage: 'url(/fabrica.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="flex flex-col min-h-screen" style={{ background: 'rgba(11,31,58,0.65)' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundImage: 'url(/fabrica.jpeg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="flex flex-col min-h-screen" style={{ background: 'rgba(11,31,58,0.32)' }}>
           <div className="flex items-center justify-between px-5 pt-12 pb-4">
             <div className="flex items-center gap-3">
               <img src="/logo.jpg" alt="Logo" className="h-9 w-9 rounded-lg object-cover" />
-              <span className="text-white font-bold text-base">La Metalúrgica</span>
+              <span className="text-white font-bold text-base" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>La Metalúrgica</span>
             </div>
             <a href="/login" className="text-xs font-medium px-4 py-2 rounded-full text-white" style={{ background: '#1E6AC8' }}>Ingresar</a>
           </div>
           <div className="px-5 pb-5">
-            <p className="text-xs mb-1" style={{ color: '#4A7BB5' }}>Bienvenido</p>
-            <span className="text-white font-bold text-lg leading-tight">La Cooperativa Metalúrgica Argentina</span>
+            <p className="text-xs mb-1" style={{ color: 'rgba(247,250,255,0.7)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Bienvenido</p>
+            <span className="text-white font-bold text-lg leading-tight" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>La Cooperativa Metalúrgica Argentina</span>
           </div>
           <div className="px-4 grid grid-cols-2 gap-3 mb-3">
             <a href="/calculadora" className="block rounded-2xl p-4" style={{ background: 'rgba(11,31,58,0.65)', border: '1px solid rgba(45,212,191,0.4)', backdropFilter: 'blur(14px)' }}>
