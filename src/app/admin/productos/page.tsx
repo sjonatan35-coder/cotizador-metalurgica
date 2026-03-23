@@ -9,7 +9,7 @@ type Producto = {
   id: string
   nombre: string
   tipo: string
-  unidad: string
+  unidad: string[]
   descripcion: string | null
   activo: boolean
 }
@@ -53,7 +53,7 @@ export default function AdminProductos() {
   const [form, setForm] = useState({
     nombre: '',
     tipo: 'Chapa',
-    unidad: 'Unidad',
+    unidades: [] as string[],
     descripcion: '',
     activo: true,
     tipoNuevo: '',
@@ -95,6 +95,11 @@ export default function AdminProductos() {
       return
     }
 
+    if (form.unidades.length === 0) {
+      mostrarMensaje('Seleccioná al menos una unidad de venta', 'error')
+      return
+    }
+
     setCargando(true)
 
     if (editandoId) {
@@ -103,7 +108,7 @@ export default function AdminProductos() {
         .update({
           nombre: form.nombre.trim(),
           tipo: tipoFinal,
-          unidad: form.unidad,
+          unidad: form.unidades,
           descripcion: form.descripcion.trim() || null,
           activo: form.activo,
         })
@@ -123,7 +128,7 @@ export default function AdminProductos() {
         .insert({
           nombre: form.nombre.trim(),
           tipo: tipoFinal,
-          unidad: form.unidad,
+          unidad: form.unidades,
           descripcion: form.descripcion.trim() || null,
           activo: form.activo,
         })
@@ -142,7 +147,7 @@ export default function AdminProductos() {
   }
 
   const resetForm = () => {
-    setForm({ nombre: '', tipo: 'Chapa', unidad: 'Unidad', descripcion: '', activo: true, tipoNuevo: '' })
+    setForm({ nombre: '', tipo: 'Chapa', unidades: [], descripcion: '', activo: true, tipoNuevo: '' })
   }
 
   const toggleActivo = async (producto: Producto) => {
@@ -165,7 +170,7 @@ export default function AdminProductos() {
     setForm({
       nombre: p.nombre,
       tipo: p.tipo,
-      unidad: p.unidad,
+      unidades: Array.isArray(p.unidad) ? p.unidad : [p.unidad],
       descripcion: p.descripcion || '',
       activo: p.activo,
       tipoNuevo: '',
@@ -209,7 +214,7 @@ export default function AdminProductos() {
         rows.push({
           nombre: row['nombre'],
           tipo: row['tipo'] || 'Otro',
-          unidad: row['unidad'] || 'Unidad',
+          unidad: row['unidad'] ? row['unidad'].split('|').map(u => u.trim()) : ['Unidad'],
           descripcion: row['descripcion'] || null,
           activo: row['activo'] !== 'false',
         })
@@ -410,10 +415,26 @@ export default function AdminProductos() {
                 </select>
               </div>
               <div>
-                <label style={s.label}>Unidad de venta</label>
-                <select style={s.select} value={form.unidad} onChange={e => setForm(f => ({ ...f, unidad: e.target.value }))}>
-                  {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
+                <label style={s.label}>Unidades de venta</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                  {UNIDADES.map(u => (
+                    <label key={u} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#0B1F3A', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={form.unidades.includes(u)}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setForm(f => ({ ...f, unidades: [...f.unidades, u] }))
+                          } else {
+                            setForm(f => ({ ...f, unidades: f.unidades.filter(x => x !== u) }))
+                          }
+                        }}
+                        style={{ width: 16, height: 16, accentColor: '#1E6AC8' }}
+                      />
+                      {u}
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -477,7 +498,7 @@ export default function AdminProductos() {
                 nombre,tipo,unidad,descripcion,activo
               </code>
               <p style={{ fontSize: 11, color: '#4A7BB5', margin: '8px 0 0' }}>
-                nombre: obligatorio — tipo: Chapa/Caño/Fierro/Otro — unidad: Unidad/kg/Metro/Rollo — activo: true o false
+                unidad: separá múltiples con | — Ej: Unidad|kg|Tonelada
               </p>
             </div>
 
@@ -505,9 +526,11 @@ export default function AdminProductos() {
                 {csvPreview.slice(0, 5).map((p, i) => (
                   <div key={i} style={s.card}>
                     <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 500, color: '#0B1F3A' }}>{p.nombre}</p>
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <span style={tipoBadgeStyle}>{p.tipo}</span>
-                      <span style={{ ...tipoBadgeStyle, background: '#E6F1FB', color: '#185FA5' }}>{p.unidad}</span>
+                      {p.unidad.map(u => (
+                        <span key={u} style={{ ...tipoBadgeStyle, background: '#E6F1FB', color: '#185FA5' }}>{u}</span>
+                      ))}
                       <span style={badgeStyle(p.activo)}>{p.activo ? 'Activo' : 'Inactivo'}</span>
                     </div>
                   </div>
@@ -562,7 +585,9 @@ export default function AdminProductos() {
                     <p style={{ margin: '0 0 5px', fontSize: 14, fontWeight: 600, color: '#0B1F3A' }}>{p.nombre}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: p.descripcion ? 6 : 0 }}>
                       <span style={tipoBadgeStyle}>{p.tipo}</span>
-                      <span style={{ ...tipoBadgeStyle, background: '#E6F1FB', color: '#185FA5' }}>{p.unidad}</span>
+                      {Array.isArray(p.unidad) && p.unidad.map(u => (
+                        <span key={u} style={{ ...tipoBadgeStyle, background: '#E6F1FB', color: '#185FA5' }}>{u}</span>
+                      ))}
                       <span style={badgeStyle(p.activo)}>{p.activo ? 'Activo' : 'Inactivo'}</span>
                     </div>
                     {p.descripcion && (
