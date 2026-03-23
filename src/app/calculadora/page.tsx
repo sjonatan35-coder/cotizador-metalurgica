@@ -105,7 +105,8 @@ function PantallaBloqueo() {
         <div className="absolute inset-0" style={{ background: 'rgba(11,31,58,0.72)' }} />
       </div>
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center gap-6 text-center">
-        <img src="/logo.jpg" alt="Logo" className="w-20 h-20 rounded-2xl object-cover" style={{ border: '2px solid rgba(74,123,181,0.4)' }} />
+        <img src="/logo.jpg" alt="Logo" className="w-20 h-20 rounded-2xl object-cover"
+          style={{ border: '2px solid rgba(74,123,181,0.4)' }} />
         <div className="w-full rounded-2xl px-6 py-8 flex flex-col items-center gap-5"
           style={{ background: 'rgba(11,31,58,0.75)', backdropFilter: 'blur(14px)', border: '1px solid rgba(220,38,38,0.3)' }}>
           <div className="w-16 h-16 rounded-full flex items-center justify-center"
@@ -316,10 +317,11 @@ export default function CalculadoraPage() {
     const texto = esUltimo ? 'Último cálculo gratuito' : `Cálculo ${usosGratis + 1} de ${MAX_USOS_GRATIS} gratuitos`
     return (
       <div className="mx-4 mb-3 px-4 py-2 rounded-xl flex items-center gap-2 text-xs"
-        style={{ background: esUltimo ? 'rgba(250,199,117,0.15)' : 'rgba(45,212,191,0.12)', border: `1px solid ${esUltimo ? 'rgba(250,199,117,0.4)' : 'rgba(45,212,191,0.35)'}` }}>
-        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: esUltimo ? '#FAC775' : '#2DD4BF' }} />
-        <span style={{ color: esUltimo ? '#FAC775' : '#2DD4BF' }}>
-          {texto} — <a href="/registro" style={{ color: esUltimo ? '#FAC775' : '#2DD4BF', fontWeight: 600 }}>Registrate</a> para uso ilimitado
+        style={{ background: esUltimo ? 'rgba(250,199,117,0.15)' : 'rgba(30,106,200,0.08)', border: `1px solid ${esUltimo ? 'rgba(250,199,117,0.5)' : 'rgba(30,106,200,0.2)'}` }}>
+        <div className="w-2 h-2 rounded-full flex-shrink-0"
+          style={{ background: esUltimo ? '#FAC775' : '#1E6AC8' }} />
+        <span style={{ color: esUltimo ? '#854F0B' : '#1E6AC8' }}>
+          {texto} — <a href="/registro" style={{ color: esUltimo ? '#854F0B' : '#1E6AC8', fontWeight: 700 }}>Registrate</a> para uso ilimitado
         </span>
       </div>
     )
@@ -327,9 +329,9 @@ export default function CalculadoraPage() {
 
   if (cargando) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0B1F3A' }}>
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-          style={{ borderColor: '#2DD4BF', borderTopColor: 'transparent' }} />
+          style={{ borderColor: '#1E6AC8', borderTopColor: 'transparent' }} />
       </div>
     )
   }
@@ -337,329 +339,319 @@ export default function CalculadoraPage() {
   if (bloqueado && paso !== 5) return <PantallaBloqueo />
 
   return (
-    <main className="min-h-screen" style={{ background: '#0B1F3A' }}>
-      <div className="min-h-screen flex flex-col" style={{ backgroundImage: 'url(/fabrica.jpeg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="flex flex-col min-h-screen" style={{ background: 'rgba(11,31,58,0.65)' }}>
+    <main className="min-h-screen bg-gray-50">
 
-          {/* HEADER */}
-          <div className="flex items-center gap-3 px-4 pt-12 pb-3">
-            <img src="/logo.jpg" alt="La Cooperativa Metalúrgica Argentina"
-              className="rounded-xl object-cover flex-shrink-0"
-              style={{ width: 44, height: 44, border: '1.5px solid rgba(74,123,181,0.4)' }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ color: '#F7FAFF', fontSize: 13, fontWeight: 700, margin: 0 }}>La Metalúrgica</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-                <BanderaArgentina />
-                <p style={{ color: 'rgba(247,250,255,0.55)', fontSize: 10.5, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  La Cooperativa Metalúrgica Argentina
-                </p>
-              </div>
+      {/* HEADER — navy con logo */}
+      <div className="bg-brand-navy text-white px-4 pt-10 pb-3 flex items-center gap-3">
+        <img src="/logo.jpg" alt="La Cooperativa Metalúrgica Argentina"
+          className="rounded-xl object-cover flex-shrink-0"
+          style={{ width: 44, height: 44, border: '1.5px solid rgba(74,123,181,0.4)' }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p className="font-bold text-sm" style={{ margin: 0 }}>La Metalúrgica</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+            <BanderaArgentina />
+            <p style={{ color: 'rgba(247,250,255,0.6)', fontSize: 10.5, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              La Cooperativa Metalúrgica Argentina
+            </p>
+          </div>
+        </div>
+        {!sesionActiva && (
+          <div className="flex-shrink-0 text-xs px-3 py-1 rounded-full"
+            style={{
+              background: usosGratis >= MAX_USOS_GRATIS - 1 ? 'rgba(250,199,117,0.2)' : 'rgba(45,212,191,0.15)',
+              color:      usosGratis >= MAX_USOS_GRATIS - 1 ? '#FAC775' : '#2DD4BF',
+              border:    `0.5px solid ${usosGratis >= MAX_USOS_GRATIS - 1 ? 'rgba(250,199,117,0.5)' : 'rgba(45,212,191,0.5)'}`,
+            }}>
+            {usosGratis} de {MAX_USOS_GRATIS}
+          </div>
+        )}
+      </div>
+
+      {/* BARRA PROGRESO — blanca */}
+      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-1 text-xs overflow-x-auto">
+        {PASOS.map((p, i) => (
+          <div key={p.n} className="flex items-center gap-1">
+            {i > 0 && <ChevronRight size={12} className="text-gray-300 shrink-0" />}
+            <span style={{
+              color:      paso === p.n ? '#1E6AC8' : paso > p.n ? '#9CA3AF' : '#D1D5DB',
+              fontWeight: paso === p.n ? 700 : 400,
+              whiteSpace: 'nowrap',
+            }}>{p.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* BANNER USOS */}
+      <div className="px-4 pt-3">
+        <BannerUsos />
+      </div>
+
+      {/* CONTENIDO */}
+      <div className="px-4 pb-6 max-w-2xl mx-auto">
+
+        {/* PASO 1 */}
+        {paso === 1 && (
+          <div className="pt-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-1">¿Para qué es tu proyecto?</h2>
+            <p className="text-gray-500 text-sm mb-5">Elegí una categoría y te ayudamos a encontrar la chapa ideal.</p>
+            <div className="grid grid-cols-2 gap-3">
+              {PROYECTOS.map((proyecto) => {
+                const Icono = ICONOS[proyecto.id]
+                if (!Icono) return null
+                return (
+                  <button key={proyecto.id} onClick={() => elegirProyecto(proyecto)}
+                    className="bg-white border-2 border-gray-200 rounded-xl p-4 text-left hover:border-blue-400 transition-all">
+                    <div className="rounded-lg p-2 w-fit mb-3 bg-blue-50">
+                      <Icono color="#1E6AC8" size={24} />
+                    </div>
+                    <p className="font-bold text-sm text-gray-900">{proyecto.label}</p>
+                    <p className="text-xs text-gray-500 mt-1">{proyecto.descripcion}</p>
+                  </button>
+                )
+              })}
             </div>
-            {!sesionActiva && (
-              <div className="flex-shrink-0 text-xs px-3 py-1 rounded-full"
-                style={{
-                  background: usosGratis >= MAX_USOS_GRATIS - 1 ? 'rgba(250,199,117,0.15)' : 'rgba(45,212,191,0.15)',
-                  color:      usosGratis >= MAX_USOS_GRATIS - 1 ? '#FAC775' : '#2DD4BF',
-                  border:    `0.5px solid ${usosGratis >= MAX_USOS_GRATIS - 1 ? 'rgba(250,199,117,0.5)' : 'rgba(45,212,191,0.5)'}`,
-                }}>
-                {usosGratis} de {MAX_USOS_GRATIS}
-              </div>
-            )}
           </div>
+        )}
 
-          {/* BARRA PROGRESO — fix TypeScript: usar Paso tipado */}
-          <div className="mx-4 mb-3 px-4 py-2 rounded-xl flex items-center gap-1 text-xs overflow-x-auto"
-            style={{ background: 'rgba(11,31,58,0.6)', border: '0.5px solid rgba(74,123,181,0.2)' }}>
-            {PASOS.map((p, i) => (
-              <div key={p.n} className="flex items-center gap-1">
-                {i > 0 && <ChevronRight size={12} style={{ color: 'rgba(247,250,255,0.2)', flexShrink: 0 }} />}
-                <span style={{
-                  color:      paso === p.n ? '#2DD4BF' : paso > p.n ? 'rgba(247,250,255,0.4)' : 'rgba(247,250,255,0.25)',
-                  whiteSpace: 'nowrap',
-                  fontWeight: paso === p.n ? 700 : 400,
-                }}>{p.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <BannerUsos />
-
-          <div className="px-4 flex-1">
-
-            {/* PASO 1 */}
-            {paso === 1 && (
-              <div>
-                <h2 className="font-bold mb-1" style={{ color: '#F7FAFF', fontSize: 18 }}>¿Para qué es tu proyecto?</h2>
-                <p className="text-sm mb-4" style={{ color: 'rgba(247,250,255,0.5)' }}>Elegí una categoría y te ayudamos a encontrar la chapa ideal.</p>
-                <div className="grid grid-cols-2 gap-3">
-                  {PROYECTOS.map((proyecto) => {
-                    const Icono = ICONOS[proyecto.id]
-                    if (!Icono) return null
-                    return (
-                      <button key={proyecto.id} onClick={() => elegirProyecto(proyecto)}
-                        className="rounded-2xl p-4 text-left transition-all"
-                        style={{ background: 'rgba(11,31,58,0.65)', border: '1px solid rgba(74,123,181,0.25)', backdropFilter: 'blur(14px)' }}>
-                        <div className="rounded-lg p-2 w-fit mb-3" style={{ background: 'rgba(30,106,200,0.3)' }}>
-                          <Icono color="#2DD4BF" size={24} />
-                        </div>
-                        <p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{proyecto.label}</p>
-                        <p className="text-xs mt-1" style={{ color: 'rgba(247,250,255,0.45)' }}>{proyecto.descripcion}</p>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* PASO 2 */}
-            {paso === 2 && proyectoSeleccionado && (
-              <div>
-                <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1" style={{ color: '#2DD4BF' }}>← Volver</button>
-                <h2 className="font-bold mb-1" style={{ color: '#F7FAFF', fontSize: 18 }}>¿De qué material lo querés?</h2>
-                <p className="text-sm mb-5" style={{ color: 'rgba(247,250,255,0.5)' }}>Proyecto: <span style={{ color: '#F7FAFF', fontWeight: 600 }}>{proyectoSeleccionado.label}</span></p>
-                <div className="flex flex-col gap-3">
-                  {proyectoSeleccionado.materiales.map((material) => (
-                    <button key={material} onClick={() => elegirMaterial(material)}
-                      className="rounded-2xl p-4 text-left transition-all"
-                      style={{ background: 'rgba(11,31,58,0.65)', border: '1px solid rgba(74,123,181,0.25)', backdropFilter: 'blur(14px)' }}>
-                      <p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{MATERIAL_INFO[material].label}</p>
-                      <p className="text-sm mt-1" style={{ color: 'rgba(247,250,255,0.5)' }}>{MATERIAL_INFO[material].descripcion}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* PASO 3 */}
-            {paso === 3 && proyectoSeleccionado && materialSeleccionado && (
-              <div>
-                <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1" style={{ color: '#2DD4BF' }}>← Volver</button>
-                <div className="rounded-xl p-3 mb-5 flex gap-4" style={{ background: 'rgba(11,31,58,0.5)', border: '0.5px solid rgba(74,123,181,0.2)' }}>
-                  <div><p className="text-xs mb-0.5" style={{ color: 'rgba(247,250,255,0.4)' }}>Proyecto</p><p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{proyectoSeleccionado.label}</p></div>
-                  <div><p className="text-xs mb-0.5" style={{ color: 'rgba(247,250,255,0.4)' }}>Material</p><p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{MATERIAL_INFO[materialSeleccionado].label}</p></div>
-                </div>
-                <h2 className="font-bold mb-4" style={{ color: '#F7FAFF', fontSize: 18 }}>¿Qué tipo de chapa necesitás?</h2>
-                <div className="flex flex-col gap-3">
-                  {proyectoSeleccionado.acabados.map((acabado) => (
-                    <button key={acabado} onClick={() => elegirAcabado(acabado)}
-                      className="rounded-2xl p-4 text-left transition-all"
-                      style={{ background: 'rgba(11,31,58,0.65)', border: '1px solid rgba(74,123,181,0.25)', backdropFilter: 'blur(14px)' }}>
-                      <p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{ACABADO_INFO[acabado].label}</p>
-                      <p className="text-sm mt-1" style={{ color: 'rgba(247,250,255,0.5)' }}>{ACABADO_INFO[acabado].descripcion}</p>
-                      {ACABADO_INFO[acabado].badge && (
-                        <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(45,212,191,0.15)', color: '#2DD4BF' }}>
-                          {ACABADO_INFO[acabado].badge}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* PASO 4 */}
-            {paso === 4 && proyectoSeleccionado && materialSeleccionado && acabadoSeleccionado && (
-              <div>
-                <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1" style={{ color: '#2DD4BF' }}>← Volver</button>
-                <div className="rounded-xl p-3 mb-5 flex flex-wrap gap-4" style={{ background: 'rgba(11,31,58,0.5)', border: '0.5px solid rgba(74,123,181,0.2)' }}>
-                  <div><p className="text-xs mb-0.5" style={{ color: 'rgba(247,250,255,0.4)' }}>Proyecto</p><p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{proyectoSeleccionado.label}</p></div>
-                  <div><p className="text-xs mb-0.5" style={{ color: 'rgba(247,250,255,0.4)' }}>Material</p><p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{MATERIAL_INFO[materialSeleccionado].label}</p></div>
-                  <div><p className="text-xs mb-0.5" style={{ color: 'rgba(247,250,255,0.4)' }}>Acabado</p><p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{ACABADO_INFO[acabadoSeleccionado].label}</p></div>
-                </div>
-                <h3 className="font-bold mb-1" style={{ color: '#F7FAFF' }}>Calibre BWG</h3>
-                <p className="text-xs mb-3" style={{ color: 'rgba(247,250,255,0.4)' }}>Rango recomendado: c{proyectoSeleccionado.calibreMin} al c{proyectoSeleccionado.calibreMax}</p>
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {getCalibresPorProyecto(proyectoSeleccionado.id).map((c) => {
-                    const sel   = calibreSeleccionado?.calibre === c.calibre
-                    const esRec = c.calibre === proyectoSeleccionado.calibreRecomendado
-                    return (
-                      <button key={c.calibre} onClick={() => setCalibreSeleccionado(c)}
-                        className="rounded-xl p-3 text-center transition-all"
-                        style={{ minWidth: 64, background: sel ? 'rgba(30,106,200,0.4)' : 'rgba(11,31,58,0.5)', border: `2px solid ${sel ? '#1E6AC8' : 'rgba(74,123,181,0.25)'}` }}>
-                        <p className="font-bold text-sm" style={{ color: '#F7FAFF' }}>{c.calibre}</p>
-                        <p className="text-xs" style={{ color: 'rgba(247,250,255,0.5)' }}>{c.thicknessMm}mm</p>
-                        {esRec && <p className="text-xs mt-1" style={{ color: '#2DD4BF' }}>★ rec.</p>}
-                      </button>
-                    )
-                  })}
-                </div>
-                <h3 className="font-bold mb-3" style={{ color: '#F7FAFF' }}>Medida de la chapa</h3>
-                <div className="flex flex-col gap-2 mb-4">
-                  {getMedidas().map((m, idx) => (
-                    <button key={idx} onClick={() => setMedidaIdx(idx)}
-                      className="rounded-xl p-3 text-left text-sm transition-all"
-                      style={{ background: medidaIdx === idx ? 'rgba(30,106,200,0.3)' : 'rgba(11,31,58,0.5)', border: `2px solid ${medidaIdx === idx ? '#1E6AC8' : 'rgba(74,123,181,0.25)'}`, color: medidaIdx === idx ? '#F7FAFF' : 'rgba(247,250,255,0.6)', fontWeight: medidaIdx === idx ? 600 : 400 }}>
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-                {esAMedida() && (
-                  <div className="flex gap-3 mb-4">
-                    <div className="flex-1">
-                      <label className="text-xs mb-1 block" style={{ color: 'rgba(247,250,255,0.5)' }}>Ancho (m)</label>
-                      <input type="number" min="0" step="0.01" value={aMedidaAncho} onChange={e => setAMedidaAncho(e.target.value)} placeholder="ej: 1.20"
-                        className="w-full rounded-xl px-3 py-2 text-sm outline-none"
-                        style={{ background: 'rgba(247,250,255,0.07)', border: '1px solid rgba(74,123,181,0.3)', color: '#F7FAFF' }} />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs mb-1 block" style={{ color: 'rgba(247,250,255,0.5)' }}>Largo (m)</label>
-                      <input type="number" min="0" step="0.01" value={aMedidaLargo} onChange={e => setAMedidaLargo(e.target.value)} placeholder="ej: 2.50"
-                        className="w-full rounded-xl px-3 py-2 text-sm outline-none"
-                        style={{ background: 'rgba(247,250,255,0.07)', border: '1px solid rgba(74,123,181,0.3)', color: '#F7FAFF' }} />
-                    </div>
-                  </div>
-                )}
-                <h3 className="font-bold mb-3" style={{ color: '#F7FAFF' }}>¿Cómo querés calcular?</h3>
-                <div className="flex gap-2 mb-4">
-                  {(['superficie', 'cantidad', 'tonelada'] as ModoCalculo[]).map(m => (
-                    <button key={m} onClick={() => setModoCalculo(m)} className="flex-1 py-2 rounded-xl text-xs transition-all"
-                      style={{ background: modoCalculo === m ? 'rgba(30,106,200,0.3)' : 'rgba(11,31,58,0.5)', border: `2px solid ${modoCalculo === m ? '#1E6AC8' : 'rgba(74,123,181,0.25)'}`, color: modoCalculo === m ? '#F7FAFF' : 'rgba(247,250,255,0.5)', fontWeight: modoCalculo === m ? 600 : 400 }}>
-                      {m === 'superficie' ? '📐 Superficie' : m === 'cantidad' ? '🔢 Cantidad' : '⚖️ Tonelada'}
-                    </button>
-                  ))}
-                </div>
-                {modoCalculo === 'superficie' && logica === 'porton' && (
-                  <div className="mb-4">
-                    <p className="text-xs mb-2" style={{ color: 'rgba(247,250,255,0.5)' }}>Orientación de la chapa</p>
-                    <div className="flex gap-2">
-                      {(['vertical', 'horizontal'] as Orientacion[]).map(o => (
-                        <button key={o} onClick={() => setOrientacion(o)} className="flex-1 py-2 rounded-xl text-sm transition-all"
-                          style={{ background: orientacion === o ? 'rgba(30,106,200,0.3)' : 'rgba(11,31,58,0.5)', border: `2px solid ${orientacion === o ? '#1E6AC8' : 'rgba(74,123,181,0.25)'}`, color: orientacion === o ? '#F7FAFF' : 'rgba(247,250,255,0.5)' }}>
-                          {o === 'vertical' ? '↕ Vertical' : '↔ Horizontal'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {modoCalculo === 'superficie' && (
-                  <div className="flex gap-3 mb-4">
-                    <div className="flex-1">
-                      <label className="text-xs mb-1 block" style={{ color: 'rgba(247,250,255,0.5)' }}>{logica === 'porton' ? 'Ancho del portón (m)' : 'Ancho a cubrir (m)'}</label>
-                      <input type="number" min="0" step="0.01" value={supAncho} onChange={e => setSupAncho(e.target.value)} placeholder="ej: 3.00"
-                        className="w-full rounded-xl px-3 py-2 text-sm outline-none"
-                        style={{ background: 'rgba(247,250,255,0.07)', border: '1px solid rgba(74,123,181,0.3)', color: '#F7FAFF' }} />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs mb-1 block" style={{ color: 'rgba(247,250,255,0.5)' }}>{logica === 'porton' ? 'Alto del portón (m)' : 'Largo a cubrir (m)'}</label>
-                      <input type="number" min="0" step="0.01" value={supLargo} onChange={e => setSupLargo(e.target.value)} placeholder="ej: 2.00"
-                        className="w-full rounded-xl px-3 py-2 text-sm outline-none"
-                        style={{ background: 'rgba(247,250,255,0.07)', border: '1px solid rgba(74,123,181,0.3)', color: '#F7FAFF' }} />
-                    </div>
-                  </div>
-                )}
-                {modoCalculo === 'cantidad' && (
-                  <div className="flex items-center gap-4 mb-4">
-                    <button onClick={() => setCantidadDirecta(v => Math.max(1, v - 1))} className="w-12 h-12 rounded-xl text-xl font-bold"
-                      style={{ background: 'rgba(11,31,58,0.5)', border: '2px solid rgba(74,123,181,0.3)', color: '#F7FAFF' }}>−</button>
-                    <span className="text-2xl font-bold min-w-[40px] text-center" style={{ color: '#F7FAFF' }}>{cantidadDirecta}</span>
-                    <button onClick={() => setCantidadDirecta(v => v + 1)} className="w-12 h-12 rounded-xl text-xl font-bold"
-                      style={{ background: 'rgba(11,31,58,0.5)', border: '2px solid rgba(74,123,181,0.3)', color: '#F7FAFF' }}>+</button>
-                    <span className="text-sm" style={{ color: 'rgba(247,250,255,0.5)' }}>chapas</span>
-                  </div>
-                )}
-                {modoCalculo === 'tonelada' && (
-                  <div className="mb-4">
-                    <label className="text-xs mb-1 block" style={{ color: 'rgba(247,250,255,0.5)' }}>Toneladas</label>
-                    <input type="number" min="0" step="0.1" value={toneladas} onChange={e => setToneladas(e.target.value)} placeholder="ej: 1.5"
-                      className="w-full rounded-xl px-3 py-2 text-sm outline-none"
-                      style={{ background: 'rgba(247,250,255,0.07)', border: '1px solid rgba(74,123,181,0.3)', color: '#F7FAFF' }} />
-                  </div>
-                )}
-                {chapasCalculadas !== null && chapasCalculadas > 0 && (
-                  <div className="rounded-xl p-4 mb-5 text-center" style={{ background: 'rgba(30,106,200,0.2)', border: '2px solid #1E6AC8' }}>
-                    <p className="text-sm mb-1" style={{ color: '#2DD4BF' }}>Chapas necesarias</p>
-                    <p className="text-4xl font-bold" style={{ color: '#F7FAFF' }}>{chapasCalculadas}</p>
-                    <p className="text-xs mt-1" style={{ color: 'rgba(247,250,255,0.5)' }}>chapas</p>
-                  </div>
-                )}
-                <button onClick={irAlResultado} disabled={!calibreSeleccionado || chapasCalculadas === null || chapasCalculadas <= 0}
-                  className="w-full rounded-xl py-4 font-bold text-base transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: '#1E6AC8', color: '#F7FAFF' }}>
-                  Ver resultado →
+        {/* PASO 2 */}
+        {paso === 2 && proyectoSeleccionado && (
+          <div className="pt-4">
+            <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1 text-blue-600">← Volver</button>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">¿De qué material lo querés?</h2>
+            <p className="text-gray-500 text-sm mb-5">Proyecto: <span className="font-semibold text-gray-900">{proyectoSeleccionado.label}</span></p>
+            <div className="flex flex-col gap-3">
+              {proyectoSeleccionado.materiales.map((material) => (
+                <button key={material} onClick={() => elegirMaterial(material)}
+                  className="bg-white border-2 border-gray-200 rounded-xl p-4 text-left hover:border-blue-400 transition-all">
+                  <p className="font-bold text-sm text-gray-900">{MATERIAL_INFO[material].label}</p>
+                  <p className="text-sm text-gray-500 mt-1">{MATERIAL_INFO[material].descripcion}</p>
                 </button>
-              </div>
-            )}
-
-            {/* PASO 5 */}
-            {paso === 5 && proyectoSeleccionado && materialSeleccionado && acabadoSeleccionado && calibreSeleccionado && (
-              <div>
-                <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1" style={{ color: '#2DD4BF' }}>← Volver</button>
-                <h2 className="font-bold mb-5" style={{ color: '#F7FAFF', fontSize: 18 }}>Tu pedido</h2>
-                <div className="rounded-2xl p-5 mb-4 flex flex-col gap-3"
-                  style={{ background: 'rgba(11,31,58,0.75)', border: '1px solid rgba(30,106,200,0.5)', backdropFilter: 'blur(14px)' }}>
-                  <div className="flex justify-between text-sm"><span style={{ color: 'rgba(247,250,255,0.5)' }}>Proyecto</span><span className="font-bold" style={{ color: '#F7FAFF' }}>{proyectoSeleccionado.label}</span></div>
-                  <div className="flex justify-between text-sm"><span style={{ color: 'rgba(247,250,255,0.5)' }}>Material</span><span className="font-bold" style={{ color: '#F7FAFF' }}>{MATERIAL_INFO[materialSeleccionado].label}</span></div>
-                  <div className="flex justify-between text-sm"><span style={{ color: 'rgba(247,250,255,0.5)' }}>Acabado</span><span className="font-bold" style={{ color: '#F7FAFF' }}>{ACABADO_INFO[acabadoSeleccionado].label}</span></div>
-                  <div className="flex justify-between text-sm"><span style={{ color: 'rgba(247,250,255,0.5)' }}>Calibre</span><span className="font-bold" style={{ color: '#F7FAFF' }}>c{calibreSeleccionado.calibre} ({calibreSeleccionado.thicknessMm} mm)</span></div>
-                  <div className="flex justify-between text-sm"><span style={{ color: 'rgba(247,250,255,0.5)' }}>Medida</span><span className="font-bold" style={{ color: '#F7FAFF' }}>{esAMedida() ? `${aMedidaAncho}m × ${aMedidaLargo}m` : getMedidas()[medidaIdx]?.label}</span></div>
-                  <div className="pt-3 flex justify-between" style={{ borderTop: '0.5px solid rgba(74,123,181,0.3)' }}>
-                    <span className="text-sm" style={{ color: 'rgba(247,250,255,0.5)' }}>Cantidad</span>
-                    <span className="font-bold text-lg" style={{ color: '#2DD4BF' }}>{chapasCalculadas} chapas</span>
-                  </div>
-                  <div className="flex justify-between text-sm"><span style={{ color: 'rgba(247,250,255,0.5)' }}>Peso total</span><span className="font-bold" style={{ color: '#F7FAFF' }}>{pesoCalculado?.toFixed(2)} kg</span></div>
-                </div>
-                <button onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${generarMensajeWA()}`, '_blank')}
-                  className="w-full rounded-xl py-4 font-bold text-base flex items-center justify-center gap-2 mb-3"
-                  style={{ background: '#25D366', color: 'white' }}>
-                  📲 Enviar pedido por WhatsApp
-                </button>
-                <button onClick={() => { setPaso(1); setProyectoSeleccionado(null); setMaterialSeleccionado(null); setAcabadoSeleccionado(null); setCalibreSeleccionado(null) }}
-                  className="w-full py-3 text-sm font-medium rounded-xl mb-4"
-                  style={{ background: 'transparent', border: '1px solid rgba(74,123,181,0.3)', color: 'rgba(247,250,255,0.6)' }}>
-                  Hacer otro pedido
-                </button>
-                <div className="px-4 py-3 rounded-2xl flex items-center gap-3 mb-2"
-                  style={{ background: 'rgba(11,31,58,0.6)', border: '0.5px solid rgba(74,123,181,0.2)' }}>
-                  <img src="/logo.jpg" alt="Logo" className="rounded-xl object-cover flex-shrink-0"
-                    style={{ width: 40, height: 40, border: '1.5px solid rgba(74,123,181,0.4)' }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold text-sm" style={{ color: '#F7FAFF', margin: 0 }}>La Cooperativa Metalúrgica Argentina</p>
-                      <BanderaArgentina />
-                    </div>
-                    <p className="text-xs mt-0.5" style={{ color: 'rgba(247,250,255,0.4)', margin: 0 }}>Villa Lugano, CABA · Argentina</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* NAV BAR */}
-          <div className="flex justify-around items-center px-4 py-3 mt-4"
-            style={{ background: 'rgba(11,31,58,0.95)', borderTop: '0.5px solid rgba(45,212,191,0.2)' }}>
-            <a href="/" className="flex flex-col items-center gap-1">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(247,250,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              <span className="text-xs" style={{ color: 'rgba(247,250,255,0.4)' }}>Inicio</span>
-            </a>
-            <div className="flex flex-col items-center gap-1">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              <span className="text-xs font-bold" style={{ color: '#2DD4BF' }}>Calculadora</span>
-            </div>
-            <a href="/presupuestos" className="flex flex-col items-center gap-1">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(247,250,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span className="text-xs" style={{ color: 'rgba(247,250,255,0.4)' }}>Presupuestos</span>
-            </a>
-            <a href="/login" className="flex flex-col items-center gap-1">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(247,250,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-              <span className="text-xs" style={{ color: 'rgba(247,250,255,0.4)' }}>Más</span>
-            </a>
-          </div>
-
-          {/* TICKER */}
-          <div style={{ background: 'rgba(11,31,58,0.97)', borderTop: '0.5px solid rgba(45,212,191,0.1)', overflow: 'hidden' }}>
-            <style>{`@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}.ticker-track{display:flex;width:max-content;animation:ticker 28s linear infinite}`}</style>
-            <div className="ticker-track" style={{ padding: '8px 0' }}>
-              {['Ley 25.326 — Protección de Datos Personales','Ley 24.240 — Defensa del Consumidor','Ley 25.506 — Firma Digital','Política de Privacidad','Términos y Condiciones','© 2026 La Cooperativa Metalúrgica Argentina','Ley 25.326 — Protección de Datos Personales','Ley 24.240 — Defensa del Consumidor','Ley 25.506 — Firma Digital','Política de Privacidad','Términos y Condiciones','© 2026 La Cooperativa Metalúrgica Argentina'].map((text, i) => (
-                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 1.5rem', fontSize: '11px', color: 'rgba(247,250,255,0.4)', whiteSpace: 'nowrap' }}>
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
-                  {text}
-                </span>
               ))}
             </div>
           </div>
+        )}
 
+        {/* PASO 3 */}
+        {paso === 3 && proyectoSeleccionado && materialSeleccionado && (
+          <div className="pt-4">
+            <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1 text-blue-600">← Volver</button>
+            <div className="bg-blue-50 rounded-xl p-3 mb-5 flex gap-4 border border-blue-100">
+              <div><p className="text-xs text-gray-400 mb-0.5">Proyecto</p><p className="font-bold text-sm text-gray-900">{proyectoSeleccionado.label}</p></div>
+              <div><p className="text-xs text-gray-400 mb-0.5">Material</p><p className="font-bold text-sm text-gray-900">{MATERIAL_INFO[materialSeleccionado].label}</p></div>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">¿Qué tipo de chapa necesitás?</h2>
+            <div className="flex flex-col gap-3">
+              {proyectoSeleccionado.acabados.map((acabado) => (
+                <button key={acabado} onClick={() => elegirAcabado(acabado)}
+                  className="bg-white border-2 border-gray-200 rounded-xl p-4 text-left hover:border-blue-400 transition-all">
+                  <p className="font-bold text-sm text-gray-900">{ACABADO_INFO[acabado].label}</p>
+                  <p className="text-sm text-gray-500 mt-1">{ACABADO_INFO[acabado].descripcion}</p>
+                  {ACABADO_INFO[acabado].badge && (
+                    <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                      {ACABADO_INFO[acabado].badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* PASO 4 */}
+        {paso === 4 && proyectoSeleccionado && materialSeleccionado && acabadoSeleccionado && (
+          <div className="pt-4">
+            <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1 text-blue-600">← Volver</button>
+            <div className="bg-blue-50 rounded-xl p-3 mb-5 flex flex-wrap gap-4 border border-blue-100">
+              <div><p className="text-xs text-gray-400 mb-0.5">Proyecto</p><p className="font-bold text-sm text-gray-900">{proyectoSeleccionado.label}</p></div>
+              <div><p className="text-xs text-gray-400 mb-0.5">Material</p><p className="font-bold text-sm text-gray-900">{MATERIAL_INFO[materialSeleccionado].label}</p></div>
+              <div><p className="text-xs text-gray-400 mb-0.5">Acabado</p><p className="font-bold text-sm text-gray-900">{ACABADO_INFO[acabadoSeleccionado].label}</p></div>
+            </div>
+            <h3 className="font-bold text-gray-900 mb-1">Calibre BWG</h3>
+            <p className="text-xs text-gray-400 mb-3">Rango recomendado: c{proyectoSeleccionado.calibreMin} al c{proyectoSeleccionado.calibreMax}</p>
+            <div className="flex flex-wrap gap-2 mb-5">
+              {getCalibresPorProyecto(proyectoSeleccionado.id).map((c) => {
+                const sel   = calibreSeleccionado?.calibre === c.calibre
+                const esRec = c.calibre === proyectoSeleccionado.calibreRecomendado
+                return (
+                  <button key={c.calibre} onClick={() => setCalibreSeleccionado(c)}
+                    className="rounded-xl p-3 text-center transition-all"
+                    style={{ minWidth: 64, background: sel ? '#EFF6FF' : 'white', border: `2px solid ${sel ? '#1E6AC8' : '#E5E7EB'}` }}>
+                    <p className="font-bold text-sm text-gray-900">{c.calibre}</p>
+                    <p className="text-xs text-gray-500">{c.thicknessMm}mm</p>
+                    {esRec && <p className="text-xs mt-1 text-blue-600">★ rec.</p>}
+                  </button>
+                )
+              })}
+            </div>
+            <h3 className="font-bold text-gray-900 mb-3">Medida de la chapa</h3>
+            <div className="flex flex-col gap-2 mb-4">
+              {getMedidas().map((m, idx) => (
+                <button key={idx} onClick={() => setMedidaIdx(idx)}
+                  className="rounded-xl p-3 text-left text-sm transition-all"
+                  style={{ background: medidaIdx === idx ? '#EFF6FF' : 'white', border: `2px solid ${medidaIdx === idx ? '#1E6AC8' : '#E5E7EB'}`, color: medidaIdx === idx ? '#1E6AC8' : '#6B7280', fontWeight: medidaIdx === idx ? 600 : 400 }}>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+            {esAMedida() && (
+              <div className="flex gap-3 mb-4">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 mb-1 block">Ancho (m)</label>
+                  <input type="number" min="0" step="0.01" value={aMedidaAncho} onChange={e => setAMedidaAncho(e.target.value)} placeholder="ej: 1.20"
+                    className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 mb-1 block">Largo (m)</label>
+                  <input type="number" min="0" step="0.01" value={aMedidaLargo} onChange={e => setAMedidaLargo(e.target.value)} placeholder="ej: 2.50"
+                    className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400" />
+                </div>
+              </div>
+            )}
+            <h3 className="font-bold text-gray-900 mb-3">¿Cómo querés calcular?</h3>
+            <div className="flex gap-2 mb-4">
+              {(['superficie', 'cantidad', 'tonelada'] as ModoCalculo[]).map(m => (
+                <button key={m} onClick={() => setModoCalculo(m)} className="flex-1 py-2 rounded-xl text-xs transition-all"
+                  style={{ background: modoCalculo === m ? '#EFF6FF' : 'white', border: `2px solid ${modoCalculo === m ? '#1E6AC8' : '#E5E7EB'}`, color: modoCalculo === m ? '#1E6AC8' : '#6B7280', fontWeight: modoCalculo === m ? 600 : 400 }}>
+                  {m === 'superficie' ? '📐 Superficie' : m === 'cantidad' ? '🔢 Cantidad' : '⚖️ Tonelada'}
+                </button>
+              ))}
+            </div>
+            {modoCalculo === 'superficie' && logica === 'porton' && (
+              <div className="mb-4">
+                <p className="text-xs text-gray-500 mb-2">Orientación de la chapa</p>
+                <div className="flex gap-2">
+                  {(['vertical', 'horizontal'] as Orientacion[]).map(o => (
+                    <button key={o} onClick={() => setOrientacion(o)} className="flex-1 py-2 rounded-xl text-sm transition-all"
+                      style={{ background: orientacion === o ? '#EFF6FF' : 'white', border: `2px solid ${orientacion === o ? '#1E6AC8' : '#E5E7EB'}`, color: orientacion === o ? '#1E6AC8' : '#6B7280' }}>
+                      {o === 'vertical' ? '↕ Vertical' : '↔ Horizontal'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {modoCalculo === 'superficie' && (
+              <div className="flex gap-3 mb-4">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 mb-1 block">{logica === 'porton' ? 'Ancho del portón (m)' : 'Ancho a cubrir (m)'}</label>
+                  <input type="number" min="0" step="0.01" value={supAncho} onChange={e => setSupAncho(e.target.value)} placeholder="ej: 3.00"
+                    className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 mb-1 block">{logica === 'porton' ? 'Alto del portón (m)' : 'Largo a cubrir (m)'}</label>
+                  <input type="number" min="0" step="0.01" value={supLargo} onChange={e => setSupLargo(e.target.value)} placeholder="ej: 2.00"
+                    className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400" />
+                </div>
+              </div>
+            )}
+            {modoCalculo === 'cantidad' && (
+              <div className="flex items-center gap-4 mb-4">
+                <button onClick={() => setCantidadDirecta(v => Math.max(1, v - 1))}
+                  className="w-12 h-12 rounded-xl text-xl font-bold bg-white border-2 border-gray-200 text-gray-900">−</button>
+                <span className="text-2xl font-bold text-gray-900 min-w-[40px] text-center">{cantidadDirecta}</span>
+                <button onClick={() => setCantidadDirecta(v => v + 1)}
+                  className="w-12 h-12 rounded-xl text-xl font-bold bg-white border-2 border-gray-200 text-gray-900">+</button>
+                <span className="text-sm text-gray-500">chapas</span>
+              </div>
+            )}
+            {modoCalculo === 'tonelada' && (
+              <div className="mb-4">
+                <label className="text-xs text-gray-500 mb-1 block">Toneladas</label>
+                <input type="number" min="0" step="0.1" value={toneladas} onChange={e => setToneladas(e.target.value)} placeholder="ej: 1.5"
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400" />
+              </div>
+            )}
+            {chapasCalculadas !== null && chapasCalculadas > 0 && (
+              <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-4 mb-5 text-center">
+                <p className="text-sm text-blue-600 mb-1">Chapas necesarias</p>
+                <p className="text-4xl font-bold text-gray-900">{chapasCalculadas}</p>
+                <p className="text-xs text-gray-500 mt-1">chapas</p>
+              </div>
+            )}
+            <button onClick={irAlResultado}
+              disabled={!calibreSeleccionado || chapasCalculadas === null || chapasCalculadas <= 0}
+              className="w-full rounded-xl py-4 font-bold text-base transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
+              style={{ background: '#1E6AC8' }}>
+              Ver resultado →
+            </button>
+          </div>
+        )}
+
+        {/* PASO 5 */}
+        {paso === 5 && proyectoSeleccionado && materialSeleccionado && acabadoSeleccionado && calibreSeleccionado && (
+          <div className="pt-4">
+            <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1 text-blue-600">← Volver</button>
+            <h2 className="text-xl font-bold text-gray-900 mb-5">Tu pedido</h2>
+            <div className="bg-white rounded-2xl border-2 border-blue-400 p-5 mb-4 flex flex-col gap-3">
+              <div className="flex justify-between text-sm"><span className="text-gray-400">Proyecto</span><span className="font-bold text-gray-900">{proyectoSeleccionado.label}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-400">Material</span><span className="font-bold text-gray-900">{MATERIAL_INFO[materialSeleccionado].label}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-400">Acabado</span><span className="font-bold text-gray-900">{ACABADO_INFO[acabadoSeleccionado].label}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-400">Calibre</span><span className="font-bold text-gray-900">c{calibreSeleccionado.calibre} ({calibreSeleccionado.thicknessMm} mm)</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-400">Medida</span><span className="font-bold text-gray-900">{esAMedida() ? `${aMedidaAncho}m × ${aMedidaLargo}m` : getMedidas()[medidaIdx]?.label}</span></div>
+              <div className="pt-3 flex justify-between border-t border-gray-100">
+                <span className="text-sm text-gray-400">Cantidad</span>
+                <span className="font-bold text-lg text-blue-600">{chapasCalculadas} chapas</span>
+              </div>
+              <div className="flex justify-between text-sm"><span className="text-gray-400">Peso total</span><span className="font-bold text-gray-900">{pesoCalculado?.toFixed(2)} kg</span></div>
+            </div>
+            <button onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${generarMensajeWA()}`, '_blank')}
+              className="w-full rounded-xl py-4 font-bold text-base flex items-center justify-center gap-2 mb-3 text-white"
+              style={{ background: '#25D366' }}>
+              📲 Enviar pedido por WhatsApp
+            </button>
+            <button onClick={() => { setPaso(1); setProyectoSeleccionado(null); setMaterialSeleccionado(null); setAcabadoSeleccionado(null); setCalibreSeleccionado(null) }}
+              className="w-full py-3 text-sm font-medium rounded-xl mb-4 border-2 border-gray-200 text-gray-600 bg-white">
+              Hacer otro pedido
+            </button>
+            {/* Branding footer */}
+            <div className="px-4 py-3 rounded-2xl flex items-center gap-3 bg-white border border-gray-200">
+              <img src="/logo.jpg" alt="Logo" className="rounded-xl object-cover flex-shrink-0"
+                style={{ width: 40, height: 40, border: '1.5px solid #E5E7EB' }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-sm text-gray-900" style={{ margin: 0 }}>La Cooperativa Metalúrgica Argentina</p>
+                  <BanderaArgentina />
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5" style={{ margin: 0 }}>Villa Lugano, CABA · Argentina</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* NAV BAR */}
+      <div className="flex justify-around items-center px-4 py-3"
+        style={{ background: '#0B1F3A', borderTop: '0.5px solid rgba(45,212,191,0.2)' }}>
+        <a href="/" className="flex flex-col items-center gap-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(247,250,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span className="text-xs" style={{ color: 'rgba(247,250,255,0.4)' }}>Inicio</span>
+        </a>
+        <div className="flex flex-col items-center gap-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span className="text-xs font-bold" style={{ color: '#2DD4BF' }}>Calculadora</span>
+        </div>
+        <a href="/presupuestos" className="flex flex-col items-center gap-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(247,250,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span className="text-xs" style={{ color: 'rgba(247,250,255,0.4)' }}>Presupuestos</span>
+        </a>
+        <a href="/login" className="flex flex-col items-center gap-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(247,250,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          <span className="text-xs" style={{ color: 'rgba(247,250,255,0.4)' }}>Más</span>
+        </a>
+      </div>
+
+      {/* TICKER */}
+      <div style={{ background: '#0B1F3A', borderTop: '0.5px solid rgba(45,212,191,0.1)', overflow: 'hidden' }}>
+        <style>{`@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}.ticker-track{display:flex;width:max-content;animation:ticker 28s linear infinite}`}</style>
+        <div className="ticker-track" style={{ padding: '8px 0' }}>
+          {['Ley 25.326 — Protección de Datos Personales','Ley 24.240 — Defensa del Consumidor','Ley 25.506 — Firma Digital','Política de Privacidad','Términos y Condiciones','© 2026 La Cooperativa Metalúrgica Argentina','Ley 25.326 — Protección de Datos Personales','Ley 24.240 — Defensa del Consumidor','Ley 25.506 — Firma Digital','Política de Privacidad','Términos y Condiciones','© 2026 La Cooperativa Metalúrgica Argentina'].map((text, i) => (
+            <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 1.5rem', fontSize: '11px', color: 'rgba(247,250,255,0.4)', whiteSpace: 'nowrap' }}>
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
+              {text}
+            </span>
+          ))}
         </div>
       </div>
+
     </main>
   )
 }
