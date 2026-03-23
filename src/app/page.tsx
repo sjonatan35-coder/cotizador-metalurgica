@@ -1,10 +1,34 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+
 export default function Home() {
+  const supabase = createClient()
+  const router = useRouter()
+  const [esAdmin, setEsAdmin] = useState(false)
+
+  useEffect(() => {
+    const checkRol = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('rol')
+        .eq('id', user.id)
+        .single()
+      if (profile?.rol === 'ADMIN') setEsAdmin(true)
+    }
+    checkRol()
+  }, [])
+
   return (
     <main className="min-h-screen" style={{ background: '#0B1F3A' }}>
       <div className="min-h-screen flex flex-col" style={{ backgroundImage: 'url(/fabrica.jpeg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="flex flex-col min-h-screen" style={{ background: 'rgba(11,31,58,0.32)' }}>
+
+          {/* Header */}
           <div className="flex items-center justify-between px-5 pt-12 pb-4">
             <div className="flex items-center gap-3">
               <img src="/logo.jpg" alt="Logo" className="h-9 w-9 rounded-lg object-cover" />
@@ -12,10 +36,14 @@ export default function Home() {
             </div>
             <a href="/login" className="text-xs font-medium px-4 py-2 rounded-full text-white" style={{ background: '#1E6AC8' }}>Ingresar</a>
           </div>
+
+          {/* Bienvenida */}
           <div className="px-5 pb-5">
             <p className="text-xs mb-1" style={{ color: 'rgba(247,250,255,0.7)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Bienvenido</p>
             <span className="text-white font-bold text-lg leading-tight" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>La Cooperativa Metalúrgica Argentina</span>
           </div>
+
+          {/* Grilla 2x2 */}
           <div className="px-4 grid grid-cols-2 gap-3 mb-3">
             <a href="/calculadora" className="block rounded-2xl p-4" style={{ background: 'rgba(11,31,58,0.65)', border: '1px solid rgba(45,212,191,0.4)', backdropFilter: 'blur(14px)' }}>
               <div className="flex justify-between items-start mb-3">
@@ -27,6 +55,7 @@ export default function Home() {
               <p className="text-white font-bold text-sm mb-0.5">Calculadora</p>
               <p className="text-xs" style={{ color: '#4A7BB5' }}>Chapas BWG</p>
             </a>
+
             <a href="/presupuestos" className="block rounded-2xl p-4" style={{ background: 'rgba(11,31,58,0.65)', border: '1px solid rgba(250,199,117,0.35)', backdropFilter: 'blur(14px)' }}>
               <div className="flex justify-between items-start mb-3">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(133,79,11,0.4)' }}>
@@ -37,6 +66,7 @@ export default function Home() {
               <p className="text-white font-bold text-sm mb-0.5">Presupuestos</p>
               <p className="text-xs" style={{ color: '#4A7BB5' }}>Generador PDF</p>
             </a>
+
             <a href="/login" className="block rounded-2xl p-4" style={{ background: 'rgba(11,31,58,0.55)', border: '0.5px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(14px)', opacity: 0.5 }}>
               <div className="flex justify-between items-start mb-3">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(15,110,86,0.3)' }}>
@@ -47,6 +77,7 @@ export default function Home() {
               <p className="text-white font-bold text-sm mb-0.5">Clientes</p>
               <p className="text-xs" style={{ color: '#4A7BB5' }}>Requiere login</p>
             </a>
+
             <a href="/login" className="block rounded-2xl p-4" style={{ background: 'rgba(11,31,58,0.55)', border: '0.5px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(14px)', opacity: 0.5 }}>
               <div className="flex justify-between items-start mb-3">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(153,60,29,0.3)' }}>
@@ -58,6 +89,28 @@ export default function Home() {
               <p className="text-xs" style={{ color: '#4A7BB5' }}>Requiere login</p>
             </a>
           </div>
+
+          {/* Botón Panel Admin — solo visible para ADMIN */}
+          {esAdmin && (
+            <div className="px-4 mb-3">
+              <a href="/admin/productos" className="flex items-center justify-between rounded-2xl p-4" style={{ background: 'rgba(30,106,200,0.25)', border: '1px solid rgba(30,106,200,0.6)', backdropFilter: 'blur(14px)' }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(30,106,200,0.4)' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F7FAFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-0.5" style={{ color: 'rgba(247,250,255,0.6)' }}>Acceso Admin</p>
+                    <p className="text-white font-bold text-sm">Panel Admin</p>
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#1E6AC8' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </div>
+              </a>
+            </div>
+          )}
+
+          {/* Acceso rápido */}
           <div className="px-4 mb-4">
             <a href="/calculadora" className="flex items-center justify-between rounded-2xl p-4" style={{ background: 'rgba(11,31,58,0.65)', border: '0.5px solid rgba(45,212,191,0.3)', backdropFilter: 'blur(14px)' }}>
               <div>
@@ -69,7 +122,10 @@ export default function Home() {
               </div>
             </a>
           </div>
+
           <div className="flex-1" />
+
+          {/* Barra navegación inferior */}
           <div className="flex justify-around items-center px-4 py-3" style={{ background: 'rgba(11,31,58,0.95)', borderTop: '0.5px solid rgba(45,212,191,0.2)' }}>
             <div className="flex flex-col items-center gap-1">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -88,6 +144,8 @@ export default function Home() {
               <span className="text-xs" style={{ color: 'rgba(247,250,255,0.4)' }}>Más</span>
             </a>
           </div>
+
+          {/* Ticker legal */}
           <div style={{ background: 'rgba(11,31,58,0.97)', borderTop: '0.5px solid rgba(45,212,191,0.1)', overflow: 'hidden' }}>
             <style>{`@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}.ticker-track{display:flex;width:max-content;animation:ticker 28s linear infinite}`}</style>
             <div className="ticker-track" style={{ padding: '8px 0' }}>
@@ -99,6 +157,7 @@ export default function Home() {
               ))}
             </div>
           </div>
+
         </div>
       </div>
     </main>
