@@ -129,9 +129,6 @@ export default function ClienteDetallePage() {
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {cliente.creditos && cliente.creditos > 0 && (
-            <span className="text-xs bg-green-50 text-green-700 border border-green-300 rounded-full px-2.5 py-1 font-medium">Credito habilitado</span>
-          )}
           {cliente.tipo_cliente && (
             <span className="text-xs bg-blue-50 text-blue-700 border border-blue-300 rounded-full px-2.5 py-1 font-medium">{cliente.tipo_cliente}</span>
           )}
