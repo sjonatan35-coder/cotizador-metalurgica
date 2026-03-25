@@ -55,14 +55,12 @@ export default function AdminPrecios() {
     setTimeout(() => setMensaje(null), 3500)
   }
 
-  // Cargar dólar BNA desde localStorage
   useEffect(() => {
     const stored = localStorage.getItem('metalurgica_dolar_bna')
     if (stored) {
       const parsed = JSON.parse(stored)
       setDolarBna(parsed.valor)
       setDolarFecha(parsed.fecha)
-      // Si el dato es de otro día, mostrar alerta
       const hoy = new Date().toLocaleDateString('es-AR')
       if (parsed.fecha !== hoy) setMostrarAlertaDolar(true)
     } else {
@@ -70,7 +68,6 @@ export default function AdminPrecios() {
     }
   }, [])
 
-  // Cargar productos activos
   useEffect(() => {
     const cargar = async () => {
       const { data } = await supabase
@@ -83,7 +80,6 @@ export default function AdminPrecios() {
     cargar()
   }, [])
 
-  // Cargar precio cuando cambia el producto seleccionado
   useEffect(() => {
     if (!productoId) return
     cargarPrecio()
@@ -101,7 +97,6 @@ export default function AdminPrecios() {
     if (data) {
       setPrecio(data)
     } else {
-      // No existe precio para este producto → inicializar vacío
       setPrecio({
         producto_id: productoId,
         precio_unidad: null,
@@ -232,7 +227,6 @@ export default function AdminPrecios() {
 
       <div style={s.body}>
 
-        {/* ALERTA DÓLAR BNA */}
         {mostrarAlertaDolar && (
           <div style={{ background: '#FFF8E1', border: '1px solid #F5C842', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
@@ -259,7 +253,6 @@ export default function AdminPrecios() {
           </div>
         )}
 
-        {/* Dólar actual en header si ya está cargado */}
         {!mostrarAlertaDolar && dolarBna && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#E1F5EE', border: '1px solid #9FE1CB', borderRadius: 8, padding: '8px 12px', marginBottom: 14 }}>
             <span style={{ fontSize: 12, color: '#0F6E56', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -271,14 +264,9 @@ export default function AdminPrecios() {
           </div>
         )}
 
-        {/* SELECTOR DE PRODUCTO */}
         <div style={{ marginBottom: 14 }}>
           <label style={s.label}>Seleccioná un producto</label>
-          <select
-            style={s.select}
-            value={productoId}
-            onChange={e => setProductoId(e.target.value)}
-          >
+          <select style={s.select} value={productoId} onChange={e => setProductoId(e.target.value)}>
             <option value="">— Elegí un producto —</option>
             {productos.map(p => (
               <option key={p.id} value={p.id}>{p.nombre} ({p.tipo})</option>
@@ -286,144 +274,79 @@ export default function AdminPrecios() {
           </select>
         </div>
 
-        {/* FORMULARIO DE PRECIOS */}
         {productoId && !cargando && precio && (
           <>
-            {/* PRECIOS PÚBLICOS */}
             <p style={s.sectionTitle}>Precios públicos</p>
             <div style={s.card}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <div style={{ flex: 1 }}>
                   <label style={s.label}>Precio unidad (ARS)</label>
-                  <input
-                    style={{ ...s.input, borderColor: '#1E6AC8' }}
-                    type="number"
-                    placeholder="0"
-                    value={precio.precio_unidad ?? ''}
-                    onChange={e => setPrecio(p => p ? ({ ...p, precio_unidad: e.target.value ? parseFloat(e.target.value) : null }) : p)}
-                  />
+                  <input style={{ ...s.input, borderColor: '#1E6AC8' }} type="number" placeholder="0" value={precio.precio_unidad ?? ''} onChange={e => setPrecio(p => p ? ({ ...p, precio_unidad: e.target.value ? parseFloat(e.target.value) : null }) : p)} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={s.label}>Precio mayorista (ARS)</label>
-                  <input
-                    style={{ ...s.input, borderColor: '#1E6AC8' }}
-                    type="number"
-                    placeholder="0"
-                    value={precio.precio_mayorista ?? ''}
-                    onChange={e => setPrecio(p => p ? ({ ...p, precio_mayorista: e.target.value ? parseFloat(e.target.value) : null }) : p)}
-                  />
+                  <input style={{ ...s.input, borderColor: '#1E6AC8' }} type="number" placeholder="0" value={precio.precio_mayorista ?? ''} onChange={e => setPrecio(p => p ? ({ ...p, precio_mayorista: e.target.value ? parseFloat(e.target.value) : null }) : p)} />
                 </div>
               </div>
               <div style={{ fontSize: 11, color: '#4A7BB5' }}>Visibles para todos — con y sin login</div>
             </div>
 
-            {/* PRECIO VIP */}
             <p style={s.sectionTitle}>Precio VIP</p>
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ fontSize: 13, color: '#0B1F3A', fontWeight: 500 }}>Precio VIP activo</span>
-                <button
-                  onClick={() => setPrecio(p => p ? ({ ...p, activo_vip: !p.activo_vip }) : p)}
-                  style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: precio.activo_vip ? '#2DD4BF' : '#d3d1c7', position: 'relative', transition: 'background 0.2s' }}
-                >
+                <button onClick={() => setPrecio(p => p ? ({ ...p, activo_vip: !p.activo_vip }) : p)} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: precio.activo_vip ? '#2DD4BF' : '#d3d1c7', position: 'relative', transition: 'background 0.2s' }}>
                   <span style={{ position: 'absolute', top: 3, left: precio.activo_vip ? 'calc(100% - 18px)' : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
                 </button>
               </div>
-              <input
-                style={{ ...s.input, opacity: precio.activo_vip ? 1 : 0.5 }}
-                type="number"
-                placeholder="Precio VIP (ARS)"
-                disabled={!precio.activo_vip}
-                value={precio.precio_vip ?? ''}
-                onChange={e => setPrecio(p => p ? ({ ...p, precio_vip: e.target.value ? parseFloat(e.target.value) : null }) : p)}
-              />
-              <div style={{ fontSize: 11, color: '#4A7BB5', marginTop: 6 }}>
-                Incluye envío gratis hasta el 2do cordón de la General Paz
-              </div>
+              <input style={{ ...s.input, opacity: precio.activo_vip ? 1 : 0.5 }} type="number" placeholder="Precio VIP (ARS)" disabled={!precio.activo_vip} value={precio.precio_vip ?? ''} onChange={e => setPrecio(p => p ? ({ ...p, precio_vip: e.target.value ? parseFloat(e.target.value) : null }) : p)} />
+              <div style={{ fontSize: 11, color: '#4A7BB5', marginTop: 6 }}>Incluye envío gratis hasta el 2do cordón de la General Paz</div>
             </div>
 
-            {/* PRECIO POR TONELADA */}
             <p style={s.sectionTitle}>Precio por tonelada</p>
             <div style={s.card}>
               <label style={s.label}>Precio tonelada (ARS)</label>
-              <input
-                style={s.input}
-                type="number"
-                placeholder="0"
-                value={precio.precio_tonelada ?? ''}
-                onChange={e => setPrecio(p => p ? ({ ...p, precio_tonelada: e.target.value ? parseFloat(e.target.value) : null }) : p)}
-              />
-              <div style={{ fontSize: 11, color: '#4A7BB5', marginTop: 6 }}>
-                Incluye envío gratis hasta el 2do cordón de la General Paz
-              </div>
+              <input style={s.input} type="number" placeholder="0" value={precio.precio_tonelada ?? ''} onChange={e => setPrecio(p => p ? ({ ...p, precio_tonelada: e.target.value ? parseFloat(e.target.value) : null }) : p)} />
+              <div style={{ fontSize: 11, color: '#4A7BB5', marginTop: 6 }}>Incluye envío gratis hasta el 2do cordón de la General Paz</div>
             </div>
 
-            {/* PRECIO INTERNO — solo ADMIN */}
             <p style={s.sectionTitle}>Precio interno (solo admin)</p>
             <div style={s.card}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <div style={{ flex: 1 }}>
                   <label style={s.label}>Costo real (ARS)</label>
-                  <input
-                    style={{ ...s.input, borderColor: '#F09595' }}
-                    type="number"
-                    placeholder="0"
-                    value={precio.precio_interno ?? ''}
-                    onChange={e => setPrecio(p => p ? ({ ...p, precio_interno: e.target.value ? parseFloat(e.target.value) : null }) : p)}
-                  />
+                  <input style={{ ...s.input, borderColor: '#F09595' }} type="number" placeholder="0" value={precio.precio_interno ?? ''} onChange={e => setPrecio(p => p ? ({ ...p, precio_interno: e.target.value ? parseFloat(e.target.value) : null }) : p)} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={s.label}>Margen mínimo (%)</label>
-                  <input
-                    style={s.input}
-                    type="number"
-                    placeholder="20"
-                    value={precio.margen_minimo ?? ''}
-                    onChange={e => setPrecio(p => p ? ({ ...p, margen_minimo: e.target.value ? parseFloat(e.target.value) : null }) : p)}
-                  />
+                  <input style={s.input} type="number" placeholder="20" value={precio.margen_minimo ?? ''} onChange={e => setPrecio(p => p ? ({ ...p, margen_minimo: e.target.value ? parseFloat(e.target.value) : null }) : p)} />
                 </div>
               </div>
-
-              {/* MARGEN CALCULADO */}
               {margen !== null && (
                 <div style={{ background: margenBajo ? '#FCEBEB' : '#EAF3DE', border: `1px solid ${margenBajo ? '#F09595' : '#9FE1CB'}`, borderRadius: 8, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <TrendingUp size={14} color={margenBajo ? '#A32D2D' : '#3B6D11'} />
                   <span style={{ fontSize: 13, fontWeight: 600, color: margenBajo ? '#A32D2D' : '#3B6D11' }}>
-                    Margen: {margen.toFixed(1)}%
-                    {margenBajo ? ` — por debajo del mínimo (${precio.margen_minimo}%)` : ' ✓'}
+                    Margen: {margen.toFixed(1)}% {margenBajo ? `— por debajo del mínimo (${precio.margen_minimo}%)` : '✓'}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* NOTAS */}
             <p style={s.sectionTitle}>Notas internas</p>
             <div style={{ marginBottom: 14 }}>
-              <textarea
-                style={{ ...s.input, height: 72, resize: 'none', fontFamily: 'inherit' }}
-                placeholder="Notas sobre precios, condiciones especiales, etc."
-                value={precio.notas ?? ''}
-                onChange={e => setPrecio(p => p ? ({ ...p, notas: e.target.value }) : p)}
-              />
+              <textarea style={{ ...s.input, height: 72, resize: 'none', fontFamily: 'inherit' }} placeholder="Notas sobre precios, condiciones especiales, etc." value={precio.notas ?? ''} onChange={e => setPrecio(p => p ? ({ ...p, notas: e.target.value }) : p)} />
             </div>
 
-            {/* LEYENDA */}
             <div style={{ background: '#FFF8E1', border: '1px solid #F5C842', borderRadius: 8, padding: '8px 12px', marginBottom: 14 }}>
               <p style={{ fontSize: 11, color: '#854F0B', margin: 0, fontStyle: 'italic' }}>
                 ⚠ Precio orientativo. El vendedor confirma según dólar BNA al día de la cotización.
               </p>
             </div>
 
-            {/* BOTÓN GUARDAR */}
-            <button
-              style={{ ...s.btnPrimary, opacity: guardando ? 0.7 : 1, marginBottom: 20 }}
-              onClick={guardarPrecios}
-              disabled={guardando}
-            >
+            <button style={{ ...s.btnPrimary, opacity: guardando ? 0.7 : 1, marginBottom: 20 }} onClick={guardarPrecios} disabled={guardando}>
               {guardando ? 'Guardando...' : 'Guardar precios'}
             </button>
 
-            {/* HISTORIAL */}
             {historial.length > 0 && (
               <>
                 <p style={s.sectionTitle}>Historial de cambios</p>
@@ -432,9 +355,7 @@ export default function AdminPrecios() {
                     <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: i < historial.length - 1 ? '1px solid #e2eaf3' : 'none' }}>
                       <div>
                         <span style={{ fontSize: 12, color: '#0B1F3A', fontWeight: 500 }}>{h.campo}</span>
-                        <span style={{ fontSize: 11, color: '#4A7BB5', marginLeft: 6 }}>
-                          {new Date(h.created_at).toLocaleDateString('es-AR')}
-                        </span>
+                        <span style={{ fontSize: 11, color: '#4A7BB5', marginLeft: 6 }}>{new Date(h.created_at).toLocaleDateString('es-AR')}</span>
                       </div>
                       <span style={{ fontSize: 12, color: '#4A7BB5' }}>
                         {formatARS(h.valor_anterior)} → <strong style={{ color: '#0B1F3A' }}>{formatARS(h.valor_nuevo)}</strong>
