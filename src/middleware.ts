@@ -2,7 +2,8 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const RUTAS_PROTEGIDAS = ['/clientes', '/stock', '/dashboard', '/perfil']
+const RUTAS_PROTEGIDAS = ['/stock', '/dashboard', '/perfil']
+
 
 type CookieToSet = { name: string; value: string; options?: Record<string, unknown> }
 

@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
-  const router = useRouter()
   const supabase = createClient()
 
   const [email, setEmail] = useState('')
@@ -29,21 +27,16 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/')
-    router.refresh()
+    window.location.href = '/clientes'
   }
 
   async function handleGoogle() {
     setLoadingGoogle(true)
     setError(null)
-
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
-
     if (error) {
       setError('Error al conectar con Google')
       setLoadingGoogle(false)
@@ -51,93 +44,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center px-6 py-10 relative overflow-hidden"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
-    >
-      {/* Fondo fabrica */}
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 relative overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <div className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(/fabrica.jpg)' }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'rgba(11,31,58,0.70)' }}
-        />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/fabrica.jpeg)' }} />
+        <div className="absolute inset-0" style={{ background: 'rgba(11,31,58,0.70)' }} />
       </div>
-
-      {/* Contenido */}
       <div className="relative z-10 w-full max-w-sm flex flex-col gap-6">
 
-        {/* Logo + nombre */}
         <div className="flex flex-col items-center gap-3 text-center">
-          <img
-            src="/logo.jpg"
-            alt="La Cooperativa Metalúrgica Argentina"
-            className="w-20 h-20 rounded-2xl object-cover"
-            style={{ border: '2px solid rgba(74,123,181,0.4)' }}
-          />
+          <img src="/logo.jpg" alt="La Cooperativa Metalúrgica Argentina" className="w-20 h-20 rounded-2xl object-cover" style={{ border: '2px solid rgba(74,123,181,0.4)' }} />
           <div>
-            <h1
-              className="font-semibold leading-snug"
-              style={{ color: '#F7FAFF', fontSize: '18px' }}
-            >
-              La Cooperativa Metalúrgica Argentina
-            </h1>
-            <p style={{ color: 'rgba(247,250,255,0.5)', fontSize: '13px', marginTop: '4px' }}>
-              🇦🇷 Villa Lugano, CABA
-            </p>
+            <h1 className="font-semibold leading-snug" style={{ color: '#F7FAFF', fontSize: '18px' }}>La Cooperativa Metalúrgica Argentina</h1>
+            <p style={{ color: 'rgba(247,250,255,0.5)', fontSize: '13px', marginTop: '4px' }}>🇦🇷 Villa Lugano, CABA</p>
           </div>
         </div>
 
-        {/* Tarjeta glass */}
-        <div
-          className="flex flex-col gap-5 rounded-2xl px-6 py-7"
-          style={{
-            background: 'rgba(11,31,58,0.75)',
-            backdropFilter: 'blur(14px)',
-            border: '1px solid rgba(74,123,181,0.25)',
-          }}
-        >
-          <p
-            className="text-center tracking-widest uppercase"
-            style={{ color: 'rgba(247,250,255,0.5)', fontSize: '11px' }}
-          >
-            Ingresá a tu cuenta
-          </p>
+        <div className="flex flex-col gap-5 rounded-2xl px-6 py-7" style={{ background: 'rgba(11,31,58,0.75)', backdropFilter: 'blur(14px)', border: '1px solid rgba(74,123,181,0.25)' }}>
+          <p className="text-center tracking-widest uppercase" style={{ color: 'rgba(247,250,255,0.5)', fontSize: '11px' }}>Ingresá a tu cuenta</p>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
-
-            {/* Email */}
             <div className="flex flex-col gap-2">
-              <label style={{ color: 'rgba(247,250,255,0.7)', fontSize: '13px' }}>
-                Email
-              </label>
+              <label style={{ color: 'rgba(247,250,255,0.7)', fontSize: '13px' }}>Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="usuario@ejemplo.com"
                 required
-                className="w-full rounded-xl px-4 outline-none transition-all"
-                style={{
-                  height: '48px',
-                  background: 'rgba(247,250,255,0.07)',
-                  border: '1px solid rgba(74,123,181,0.3)',
-                  color: '#F7FAFF',
-                  fontSize: '15px',
-                }}
-                onFocus={e => (e.target.style.borderColor = 'rgba(30,106,200,0.6)')}
-                onBlur={e => (e.target.style.borderColor = 'rgba(74,123,181,0.3)')}
+                className="w-full rounded-xl px-4 outline-none"
+                style={{ height: '48px', background: 'rgba(247,250,255,0.07)', border: '1px solid rgba(74,123,181,0.3)', color: '#F7FAFF', fontSize: '15px' }}
               />
             </div>
 
-            {/* Contraseña */}
             <div className="flex flex-col gap-2">
-              <label style={{ color: 'rgba(247,250,255,0.7)', fontSize: '13px' }}>
-                Contraseña
-              </label>
+              <label style={{ color: 'rgba(247,250,255,0.7)', fontSize: '13px' }}>Contraseña</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -145,95 +85,45 @@ export default function LoginPage() {
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Tu contraseña"
                   required
-                  className="w-full rounded-xl px-4 pr-12 outline-none transition-all"
-                  style={{
-                    height: '48px',
-                    background: 'rgba(247,250,255,0.07)',
-                    border: '1px solid rgba(74,123,181,0.3)',
-                    color: '#F7FAFF',
-                    fontSize: '15px',
-                  }}
-                  onFocus={e => (e.target.style.borderColor = 'rgba(30,106,200,0.6)')}
-                  onBlur={e => (e.target.style.borderColor = 'rgba(74,123,181,0.3)')}
+                  className="w-full rounded-xl px-4 pr-12 outline-none"
+                  style={{ height: '48px', background: 'rgba(247,250,255,0.07)', border: '1px solid rgba(74,123,181,0.3)', color: '#F7FAFF', fontSize: '15px' }}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2"
-                  style={{ color: 'rgba(45,212,191,0.7)' }}
-                >
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(45,212,191,0.7)' }}>
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              <div className="text-right">
-                <button
-                  type="button"
-                  style={{ color: 'rgba(45,212,191,0.8)', fontSize: '12px' }}
-                >
-                  ¿Olvidaste tu contraseña?
                 </button>
               </div>
             </div>
 
-            {/* Error */}
             {error && (
-              <div
-                className="rounded-xl px-4 py-3 text-center"
-                style={{
-                  background: 'rgba(220,38,38,0.15)',
-                  border: '1px solid rgba(220,38,38,0.3)',
-                  color: '#FCA5A5',
-                  fontSize: '13px',
-                }}
-              >
+              <div className="rounded-xl px-4 py-3 text-center" style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)', color: '#FCA5A5', fontSize: '13px' }}>
                 {error}
               </div>
             )}
 
-            {/* Botón ingresar */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl font-semibold flex items-center justify-center gap-2 transition-opacity"
-              style={{
-                height: '48px',
-                background: '#1E6AC8',
-                color: '#F7FAFF',
-                fontSize: '15px',
-                opacity: loading ? 0.7 : 1,
-              }}
+              className="w-full rounded-xl font-semibold flex items-center justify-center gap-2"
+              style={{ height: '48px', background: '#1E6AC8', color: '#F7FAFF', fontSize: '15px', opacity: loading ? 0.7 : 1 }}
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
 
-          {/* Separador */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px" style={{ background: 'rgba(74,123,181,0.25)' }} />
-            <span style={{ color: 'rgba(247,250,255,0.35)', fontSize: '12px' }}>
-              o continuá con
-            </span>
+            <span style={{ color: 'rgba(247,250,255,0.35)', fontSize: '12px' }}>o continuá con</span>
             <div className="flex-1 h-px" style={{ background: 'rgba(74,123,181,0.25)' }} />
           </div>
 
-          {/* Botón Google */}
           <button
             onClick={handleGoogle}
             disabled={loadingGoogle}
-            className="w-full rounded-xl flex items-center justify-center gap-3 transition-opacity"
-            style={{
-              height: '48px',
-              background: 'rgba(247,250,255,0.07)',
-              border: '1px solid rgba(74,123,181,0.3)',
-              color: 'rgba(247,250,255,0.85)',
-              fontSize: '14px',
-              opacity: loadingGoogle ? 0.7 : 1,
-            }}
+            className="w-full rounded-xl flex items-center justify-center gap-3"
+            style={{ height: '48px', background: 'rgba(247,250,255,0.07)', border: '1px solid rgba(74,123,181,0.3)', color: 'rgba(247,250,255,0.85)', fontSize: '14px', opacity: loadingGoogle ? 0.7 : 1 }}
           >
-            {loadingGoogle ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
+            {loadingGoogle ? <Loader2 size={16} className="animate-spin" /> : (
               <svg width="18" height="18" viewBox="0 0 48 48">
                 <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/>
                 <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
@@ -245,15 +135,12 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Link a registro */}
         <p className="text-center" style={{ color: 'rgba(247,250,255,0.5)', fontSize: '14px' }}>
           ¿No tenés cuenta?{' '}
-          <a href="/registro" style={{ color: '#2DD4BF', fontWeight: 500 }}>
-            Registrate gratis
-          </a>
+          <a href="/registro" style={{ color: '#2DD4BF', fontWeight: 500 }}>Registrate gratis</a>
         </p>
 
       </div>
     </div>
   )
-}
+} 
