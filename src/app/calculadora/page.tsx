@@ -161,19 +161,36 @@ export default function CalculadoraPage() {
   const [bloqueado,       setBloqueado]       = useState(false)
   const [sesionActiva,    setSesionActiva]    = useState(false)
   const [cargando,        setCargando]        = useState(true)
+  const [proyectoPopular, setProyectoPopular] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) {
         setSesionActiva(true)
         setCargando(false)
-        return
+      } else {
+        const usos = parseInt(localStorage.getItem(STORAGE_KEY) ?? '0')
+        setUsosGratis(usos)
+        if (usos >= MAX_USOS_GRATIS) setBloqueado(true)
+        setCargando(false)
       }
-      const usos = parseInt(localStorage.getItem(STORAGE_KEY) ?? '0')
-      setUsosGratis(usos)
-      if (usos >= MAX_USOS_GRATIS) setBloqueado(true)
-      setCargando(false)
+
+      // Leer proyecto más popular
+      const { data: eventos } = await supabase
+        .from('eventos_app')
+        .select('proyecto_id')
+        .eq('evento', 'calculadora_proyecto_elegido')
+        .not('proyecto_id', 'is', null)
+
+      if (eventos && eventos.length > 0) {
+        const conteo: Record<string, number> = {}
+        eventos.forEach(e => {
+          if (e.proyecto_id) conteo[e.proyecto_id] = (conteo[e.proyecto_id] || 0) + 1
+        })
+        const masPopular = Object.entries(conteo).sort((a, b) => b[1] - a[1])[0]?.[0]
+        if (masPopular) setProyectoPopular(masPopular)
+      }
     })
   }, [])
 
@@ -232,6 +249,17 @@ export default function CalculadoraPage() {
   }
 
   function elegirProyecto(proyecto: Proyecto) {
+    // Registrar evento en Supabase
+    const supabase = createClient()
+    const utmRaw = localStorage.getItem('metalurgica_utm')
+    const utm = utmRaw ? JSON.parse(utmRaw) : null
+    supabase.from('eventos_app').insert({
+      evento: 'calculadora_proyecto_elegido',
+      proyecto_id: proyecto.id,
+      fuente: utm?.source ?? 'directo',
+    }).then(() => {})
+
+    // Lógica original
     setProyectoSeleccionado(proyecto)
     setMaterialSeleccionado(null)
     setAcabadoSeleccionado(null)
@@ -299,7 +327,7 @@ export default function CalculadoraPage() {
       '🏭 *Pedido — La Cooperativa Metalúrgica Argentina*',
       '',
       `📋 Proyecto: ${proyectoSeleccionado?.label}`,
-      `🔧 Material: ${materialSeleccionado} — ${ACABADO_LABELS[acabadoSeleccionado!]}`,
+      `🔩 Material: ${materialSeleccionado} — ${ACABADO_LABELS[acabadoSeleccionado!]}`,
       `📐 Calibre: ${calibreSeleccionado?.calibre} BWG (${calibreSeleccionado?.thicknessMm} mm)`,
       `📏 Medida: ${medidaLabel}`,
       `🔢 Cantidad: ${chapas} chapas`,
@@ -308,6 +336,16 @@ export default function CalculadoraPage() {
       'Por favor confirmen disponibilidad y precio. ¡Gracias!',
     ]
     return encodeURIComponent(lines.join('\n'))
+  }
+
+  function generarLinkPresupuesto(): string {
+    const params = new URLSearchParams()
+    if (proyectoSeleccionado) params.set('proyecto', proyectoSeleccionado.id)
+    if (materialSeleccionado) params.set('material', materialSeleccionado)
+    if (calibreSeleccionado) params.set('calibre', String(calibreSeleccionado.calibre))
+    const chapas = calcularChapas()
+    if (chapas) params.set('cantidad', String(chapas))
+    return `/presupuestos/nuevo?${params.toString()}`
   }
 
   const chapasCalculadas = calcularChapas()
@@ -402,9 +440,15 @@ export default function CalculadoraPage() {
               {PROYECTOS.map((proyecto) => {
                 const Icono = ICONOS[proyecto.id]
                 if (!Icono) return null
+                const esPopular = proyectoPopular === proyecto.id
                 return (
                   <button key={proyecto.id} onClick={() => elegirProyecto(proyecto)}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-4 text-left hover:border-blue-400 transition-all">
+                    className="bg-white border-2 border-gray-200 rounded-xl p-4 text-left hover:border-blue-400 transition-all relative">
+                    {esPopular && (
+                      <div style={{ position: 'absolute', top: -1, right: 8, background: '#2DD4BF', borderRadius: '0 0 6px 6px', padding: '2px 8px' }}>
+                        <p style={{ color: '#0B1F3A', fontSize: 9, fontWeight: 700, margin: 0 }}>+ solicitado</p>
+                      </div>
+                    )}
                     <div className="rounded-lg p-2 w-fit mb-3 bg-blue-50">
                       <Icono color="#1E6AC8" size={24} />
                     </div>
@@ -482,7 +526,7 @@ export default function CalculadoraPage() {
                     style={{ minWidth: 64, background: sel ? '#EFF6FF' : 'white', border: `2px solid ${sel ? '#1E6AC8' : '#E5E7EB'}` }}>
                     <p className="font-bold text-sm text-gray-900">{c.calibre}</p>
                     <p className="text-xs text-gray-500">{c.thicknessMm}mm</p>
-                    {esRec && <p className="text-xs mt-1 text-blue-600">★ rec.</p>}
+                    {esRec && <p className="text-xs mt-1 text-blue-600">⭐ rec.</p>}
                   </button>
                 )
               })}
@@ -597,15 +641,24 @@ export default function CalculadoraPage() {
               </div>
               <div className="flex justify-between text-sm"><span className="text-gray-400">Peso total</span><span className="font-bold text-gray-900">{pesoCalculado?.toFixed(2)} kg</span></div>
             </div>
+
             <button onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${generarMensajeWA()}`, '_blank')}
               className="w-full rounded-xl py-4 font-bold text-base flex items-center justify-center gap-2 mb-3 text-white"
               style={{ background: '#25D366' }}>
-              📱 Enviar pedido por WhatsApp
+              📲 Enviar pedido por WhatsApp
             </button>
+
+            <a href={generarLinkPresupuesto()}
+              className="w-full rounded-xl py-4 font-bold text-base flex items-center justify-center gap-2 mb-3 text-white"
+              style={{ background: '#1E6AC8', textDecoration: 'none' }}>
+              📄 Generar presupuesto
+            </a>
+
             <button onClick={() => { setPaso(1); setProyectoSeleccionado(null); setMaterialSeleccionado(null); setAcabadoSeleccionado(null); setCalibreSeleccionado(null) }}
               className="w-full py-3 text-sm font-medium rounded-xl mb-4 border-2 border-gray-200 text-gray-600 bg-white">
               Hacer otro pedido
             </button>
+
             <div className="px-4 py-3 rounded-2xl flex items-center gap-3 bg-white border border-gray-200">
               <img src="/logo.jpg" alt="Logo" className="rounded-xl object-cover flex-shrink-0 cursor-pointer"
                 onClick={() => router.push('/')}
