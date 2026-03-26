@@ -63,9 +63,9 @@ export default function RegistroPage() {
     if (data.user) {
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
-        full_name: fullName,
-        phone,
-        role: 'SELLER',
+        nombre: fullName,
+        telefono: phone,
+        rol: 'SELLER',
         fuente: utm?.source ?? 'directo',
         campana_origen: utm?.campaign ?? null,
       })
