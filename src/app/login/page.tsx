@@ -46,7 +46,7 @@ export default function LoginPage() {
     }
     const params = new URLSearchParams(window.location.search)
     const redirectTo = params.get('redirectTo') || '/clientes'
-    window.location.href = redirectTo
+    window.location.replace(redirectTo)
   }
 
   async function handleReset(e: React.FormEvent) {
