@@ -60,7 +60,7 @@ function NuevoPresupuestoContent() {
   const [mostrarPDF, setMostrarPDF] = useState(false)
   const [logoBase64, setLogoBase64] = useState<string | null>(null)
 
-  const [numero, setNumero] = useState('PRES-0000')
+  const [numero, setNumero] = useState('')
   const [clienteNombre, setClienteNombre] = useState('')
   const [clienteTelefono, setClienteTelefono] = useState('')
   const [validezDias, setValidezDias] = useState(1)
@@ -82,14 +82,29 @@ function NuevoPresupuestoContent() {
         if (profile?.tenant_id) setTenantId(profile.tenant_id)
       }
 
-      const nombre = searchParams.get('nombre')
-      const telefono = searchParams.get('telefono')
-      const producto = searchParams.get('producto')
-      if (nombre) setClienteNombre(decodeURIComponent(nombre))
-      if (telefono) setClienteTelefono(decodeURIComponent(telefono))
-      if (producto) {
-        const prod = decodeURIComponent(producto)
-        setItems([{ ...ITEM_VACIO, proyecto: prod, descripcion: buildDescripcion(prod, '', '') }])
+      const proyectoParam = searchParams.get('proyecto')
+      const materialParam = searchParams.get('material')
+      const calibreParam  = searchParams.get('calibre')
+      const cantidadParam = searchParams.get('cantidad')
+      const nombre        = searchParams.get('nombre')
+      const telefono      = searchParams.get('telefono')
+
+      if (nombre)    setClienteNombre(decodeURIComponent(nombre))
+      if (telefono)  setClienteTelefono(decodeURIComponent(telefono))
+
+      if (proyectoParam) {
+        const proyecto  = decodeURIComponent(proyectoParam)
+        const material  = materialParam ? decodeURIComponent(materialParam) : ''
+        const calibre   = calibreParam  ? decodeURIComponent(calibreParam)  : ''
+        const cantidad  = cantidadParam ? parseInt(cantidadParam) : 1
+        setItems([{
+          ...ITEM_VACIO,
+          proyecto,
+          material,
+          calibre,
+          cantidad,
+          descripcion: buildDescripcion(proyecto, material, calibre),
+        }])
       }
 
       try {
@@ -222,7 +237,7 @@ function NuevoPresupuestoContent() {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-white font-medium text-base leading-tight">Nuevo presupuesto</h1>
-          <p className="text-[#4A7BB5] text-xs">{numero}</p>
+          <p className="text-[#4A7BB5] text-xs">{numero || 'Generando...'}</p>
         </div>
       </div>
 
@@ -237,23 +252,25 @@ function NuevoPresupuestoContent() {
               placeholder="Ej: Juan Rodríguez"
               className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-slate-500 mb-1 block">Teléfono</label>
-              <input type="tel" value={clienteTelefono} onChange={e => setClienteTelefono(e.target.value)}
-                placeholder="11 5555-0000"
-                className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400" />
-            </div>
-            <div>
-              <label className="text-xs text-slate-500 mb-1 block">Válido por</label>
-              <select value={validezDias} onChange={e => setValidezDias(Number(e.target.value))}
-                className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400">
-                <option value={1}>1 día</option>
-                <option value={3}>3 días</option>
-                <option value={7}>7 días</option>
-                <option value={15}>15 días</option>
-                <option value={30}>30 días</option>
-              </select>
+          <div>
+            <label className="text-xs text-slate-500 mb-1 block">Teléfono</label>
+            <input type="tel" value={clienteTelefono} onChange={e => setClienteTelefono(e.target.value)}
+              placeholder="11 5555-0000"
+              className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-500 mb-1 block">Válido por</label>
+            <div className="flex gap-2">
+              {[1, 3, 7, 15, 30].map(d => (
+                <button key={d} onClick={() => setValidezDias(d)}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-all ${
+                    validezDias === d
+                      ? 'bg-[#1E6AC8] border-[#1E6AC8] text-white'
+                      : 'bg-white border-slate-300 text-slate-600'
+                  }`}>
+                  {d}d
+                </button>
+              ))}
             </div>
           </div>
         </section>
