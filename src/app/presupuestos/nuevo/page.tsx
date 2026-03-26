@@ -66,6 +66,7 @@ function NuevoPresupuestoContent() {
   const [validezDias, setValidezDias] = useState(1)
   const [notas, setNotas] = useState('')
   const [items, setItems] = useState<Item[]>([{ ...ITEM_VACIO }])
+  const [cantidades, setCantidades] = useState<string[]>(['1'])
 
   const clienteId = searchParams.get('cliente_id')
 
@@ -97,14 +98,8 @@ function NuevoPresupuestoContent() {
         const material = materialParam ? decodeURIComponent(materialParam) : ''
         const calibre  = calibreParam  ? decodeURIComponent(calibreParam)  : ''
         const cantidad = cantidadParam ? parseInt(cantidadParam) : 1
-        setItems([{
-          ...ITEM_VACIO,
-          proyecto,
-          material,
-          calibre,
-          cantidad,
-          descripcion: buildDescripcion(proyecto, material, calibre),
-        }])
+        setItems([{ ...ITEM_VACIO, proyecto, material, calibre, cantidad, descripcion: buildDescripcion(proyecto, material, calibre) }])
+        setCantidades([String(cantidad)])
       }
 
       try {
@@ -135,11 +130,26 @@ function NuevoPresupuestoContent() {
 
   function agregarItem() {
     setItems(prev => [...prev, { ...ITEM_VACIO }])
+    setCantidades(prev => [...prev, '1'])
   }
 
   function eliminarItem(index: number) {
     if (items.length === 1) return
     setItems(prev => prev.filter((_, i) => i !== index))
+    setCantidades(prev => prev.filter((_, i) => i !== index))
+  }
+
+  function handleCantidadChange(index: number, val: string) {
+    const soloNumeros = val.replace(/[^0-9]/g, '')
+    setCantidades(prev => { const n = [...prev]; n[index] = soloNumeros; return n })
+    const num = parseInt(soloNumeros) || 0
+    updateItem(index, { cantidad: num })
+  }
+
+  function handleCantidadBlur(index: number) {
+    const num = parseInt(cantidades[index]) || 1
+    setCantidades(prev => { const n = [...prev]; n[index] = String(num); return n })
+    updateItem(index, { cantidad: num })
   }
 
   const total = items.reduce((acc, i) => acc + i.subtotal, 0)
@@ -152,12 +162,7 @@ function NuevoPresupuestoContent() {
       const { data: { user } } = await supabase.auth.getUser()
       const itemsLimpios = items
         .filter(i => i.descripcion.trim())
-        .map(i => ({
-          descripcion: i.descripcion,
-          cantidad: i.cantidad,
-          precio_unitario: i.precio_unitario,
-          subtotal: i.subtotal,
-        }))
+        .map(i => ({ descripcion: i.descripcion, cantidad: i.cantidad, precio_unitario: i.precio_unitario, subtotal: i.subtotal }))
       const payload: Record<string, unknown> = {
         numero_presupuesto: numero,
         cliente_nombre: clienteNombre.trim(),
@@ -191,25 +196,18 @@ function NuevoPresupuestoContent() {
       .join('\n')
     const msg = encodeURIComponent(
       `🏭 *Presupuesto ${numero} — La Cooperativa Metalúrgica Argentina*\n\n` +
-      `Cliente: ${clienteNombre}\n\n` +
-      `${itemsTexto}\n\n` +
+      `Cliente: ${clienteNombre}\n\n${itemsTexto}\n\n` +
       `*Total: $${total.toLocaleString('es-AR')}*\n\n` +
       `Válido por ${validezDias} día${validezDias !== 1 ? 's' : ''}.\n` +
-      `⚠️ El valor se confirma desde el momento del pago.\n` +
-      `${notas ? '\n' + notas : ''}`
+      `⚠️ El valor se confirma desde el momento del pago.\n${notas ? '\n' + notas : ''}`
     )
-    const url = tel
-      ? `https://wa.me/54${tel}?text=${msg}`
-      : `https://wa.me/5491159396358?text=${msg}`
+    const url = tel ? `https://wa.me/54${tel}?text=${msg}` : `https://wa.me/5491159396358?text=${msg}`
     window.open(url, '_blank')
   }
 
   function imprimirPDF() {
     setMostrarPDF(true)
-    setTimeout(() => {
-      window.print()
-      setTimeout(() => setMostrarPDF(false), 500)
-    }, 400)
+    setTimeout(() => { window.print(); setTimeout(() => setMostrarPDF(false), 500) }, 400)
   }
 
   const fechaHoy = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -218,14 +216,7 @@ function NuevoPresupuestoContent() {
   return (
     <div className="min-h-screen bg-white pb-32">
       <Toast toasts={toasts} onRemove={removeToast} />
-
-      <style>{`
-        @media print {
-          body * { visibility: hidden !important; }
-          #pdf-content, #pdf-content * { visibility: visible !important; }
-          #pdf-content { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; background: white !important; }
-        }
-      `}</style>
+      <style>{`@media print { body * { visibility: hidden !important; } #pdf-content, #pdf-content * { visibility: visible !important; } #pdf-content { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; background: white !important; } }`}</style>
 
       <div className="bg-[#0B1F3A] px-4 pt-4 pb-4 flex items-center gap-3 sticky top-0 z-10">
         <button onClick={() => router.push('/presupuestos')} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
@@ -261,11 +252,7 @@ function NuevoPresupuestoContent() {
             <div className="flex gap-2">
               {[1, 3, 7, 15, 30].map(d => (
                 <button key={d} onClick={() => setValidezDias(d)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-all ${
-                    validezDias === d
-                      ? 'bg-[#1E6AC8] border-[#1E6AC8] text-white'
-                      : 'bg-white border-slate-300 text-slate-600'
-                  }`}>
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-all ${validezDias === d ? 'bg-[#1E6AC8] border-[#1E6AC8] text-white' : 'bg-white border-slate-300 text-slate-600'}`}>
                   {d}d
                 </button>
               ))}
@@ -275,24 +262,17 @@ function NuevoPresupuestoContent() {
 
         <section className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ítems</p>
-
           {items.map((item, i) => (
             <div key={i} className="bg-white border-2 border-slate-200 rounded-xl p-3 flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-slate-500">Ítem {i + 1}</p>
-                {items.length > 1 && (
-                  <button onClick={() => eliminarItem(i)} className="text-xs text-red-400">Eliminar</button>
-                )}
+                {items.length > 1 && <button onClick={() => eliminarItem(i)} className="text-xs text-red-400">Eliminar</button>}
               </div>
 
               <div className="flex flex-wrap gap-1.5">
                 {PROYECTOS.map(p => (
                   <button key={p.id} onClick={() => updateItem(i, { proyecto: p.id })}
-                    className={`px-2.5 py-1 rounded-full text-xs border-2 transition-all ${
-                      item.proyecto === p.id
-                        ? 'bg-[#1E6AC8] border-[#1E6AC8] text-white'
-                        : 'bg-white border-slate-300 text-slate-600'
-                    }`}>
+                    className={`px-2.5 py-1 rounded-full text-xs border-2 transition-all ${item.proyecto === p.id ? 'bg-[#1E6AC8] border-[#1E6AC8] text-white' : 'bg-white border-slate-300 text-slate-600'}`}>
                     {p.label}
                   </button>
                 ))}
@@ -320,11 +300,7 @@ function NuevoPresupuestoContent() {
               )}
 
               <input type="text" value={item.descripcion}
-                onChange={e => setItems(prev => {
-                  const n = [...prev]
-                  n[i] = { ...n[i], descripcion: e.target.value }
-                  return n
-                })}
+                onChange={e => setItems(prev => { const n = [...prev]; n[i] = { ...n[i], descripcion: e.target.value }; return n })}
                 placeholder="Descripción del ítem..."
                 className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400" />
 
@@ -332,9 +308,11 @@ function NuevoPresupuestoContent() {
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">Cantidad</label>
                   <input
-                    type="number" min={1}
-                    value={item.cantidad || ''}
-                    onChange={e => updateItem(i, { cantidad: e.target.value === '' ? 1 : Number(e.target.value) })}
+                    type="text"
+                    inputMode="numeric"
+                    value={cantidades[i] ?? '1'}
+                    onChange={e => handleCantidadChange(i, e.target.value)}
+                    onBlur={() => handleCantidadBlur(i)}
                     onFocus={e => e.target.select()}
                     className="w-full border-2 border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400" />
                 </div>
@@ -417,10 +395,7 @@ function NuevoPresupuestoContent() {
         <div id="pdf-content" style={{ position: 'fixed', top: 0, left: 0, width: '100%', background: '#fff', padding: 32, zIndex: 9999, fontFamily: 'Arial, sans-serif' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, paddingBottom: 16, borderBottom: '2px solid #0B1F3A' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {logoBase64
-                ? <img src={logoBase64} alt="Logo" style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover' }} />
-                : <div style={{ width: 52, height: 52, background: '#0B1F3A', borderRadius: 8 }} />
-              }
+              {logoBase64 ? <img src={logoBase64} alt="Logo" style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover' }} /> : <div style={{ width: 52, height: 52, background: '#0B1F3A', borderRadius: 8 }} />}
               <div>
                 <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#0B1F3A' }}>La Cooperativa Metalúrgica Argentina</p>
                 <p style={{ margin: 0, fontSize: 11, color: '#4A7BB5' }}>Villa Lugano, CABA · WhatsApp: 11 5939-6358</p>
@@ -432,13 +407,11 @@ function NuevoPresupuestoContent() {
               <p style={{ margin: 0, fontSize: 11, color: '#666' }}>Vence: {fechaVence}</p>
             </div>
           </div>
-
           <div style={{ marginBottom: 20 }}>
             <p style={{ margin: '0 0 4px', fontSize: 11, color: '#666', textTransform: 'uppercase', letterSpacing: 1 }}>Para</p>
             <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#0B1F3A' }}>{clienteNombre}</p>
             {clienteTelefono && <p style={{ margin: 0, fontSize: 12, color: '#4A7BB5' }}>{clienteTelefono}</p>}
           </div>
-
           <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: 12 }}>
             <thead>
               <tr style={{ background: '#0B1F3A' }}>
@@ -459,21 +432,18 @@ function NuevoPresupuestoContent() {
               ))}
             </tbody>
           </table>
-
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
             <div style={{ background: '#0B1F3A', borderRadius: 8, padding: '12px 20px', textAlign: 'right' }}>
               <p style={{ margin: 0, fontSize: 12, color: '#4A7BB5' }}>Total</p>
               <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#2DD4BF' }}>${total.toLocaleString('es-AR')}</p>
             </div>
           </div>
-
           {notas && (
             <div style={{ background: '#f7faff', border: '1px solid #e2eaf3', borderRadius: 8, padding: '10px 14px', marginBottom: 16 }}>
               <p style={{ margin: '0 0 4px', fontSize: 10, color: '#666', textTransform: 'uppercase', letterSpacing: 1 }}>Observaciones</p>
               <p style={{ margin: 0, fontSize: 12, color: '#0B1F3A' }}>{notas}</p>
             </div>
           )}
-
           <div style={{ borderTop: '1px solid #e2eaf3', paddingTop: 12, fontSize: 10, color: '#999', textAlign: 'center' }}>
             Precios en pesos argentinos · Sujeto a disponibilidad de stock · Válido por {validezDias} día{validezDias !== 1 ? 's' : ''} desde la fecha de emisión · El valor se confirma desde el momento del pago
           </div>
