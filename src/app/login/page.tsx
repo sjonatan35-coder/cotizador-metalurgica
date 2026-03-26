@@ -1,239 +1,298 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Eye, EyeOff, Loader2, FileText, Calculator, MessageCircle } from 'lucide-react'
 
 export default function LoginPage() {
-  const supabase = createClient()
-
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [loadingReset, setLoadingReset] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [resetSent, setResetSent] = useState(false)
-  const [showReset, setShowReset] = useState(false)
-  const [resetEmail, setResetEmail] = useState('')
+  const [error, setError] = useState('')
+  const [hover, setHover] = useState(false)
 
-  // Captación UTM silenciosa
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const source = params.get('utm_source')
-    const medium = params.get('utm_medium')
-    const campaign = params.get('utm_campaign')
-    if (source) {
-      localStorage.setItem('metalurgica_utm', JSON.stringify({
-        source, medium, campaign, capturedAt: new Date().toISOString()
-      }))
-    }
-  }, [])
-
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
+  const handleLogin = async () => {
     setLoading(true)
-    setError(null)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      if (error.message.includes('Invalid login')) {
-        setError('Email o contraseña incorrectos. ¿No tenés cuenta?')
-      } else {
-        setError('Ocurrió un error. Intentá de nuevo.')
-      }
+    setError('')
+
+    const supabase = createClient()
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (authError) {
+      setError('Email o contraseña incorrectos')
       setLoading(false)
       return
     }
-    const params = new URLSearchParams(window.location.search)
-    const redirectTo = params.get('redirectTo') || '/clientes'
-    window.location.replace(redirectTo)
-  }
 
-  async function handleReset(e: React.FormEvent) {
-    e.preventDefault()
-    setLoadingReset(true)
-    setError(null)
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    })
-    if (error) { setError('Error al enviar el email. Verificá la dirección.'); setLoadingReset(false); return }
-    setResetSent(true)
-    setLoadingReset(false)
-  }
+    const userId = data.user?.id
+    if (!userId) {
+      window.location.replace('/mi-panel')
+      return
+    }
 
-  const inputStyle = {
-    height: '48px',
-    background: 'rgba(247,250,255,0.07)',
-    border: '1px solid rgba(74,123,181,0.3)',
-    color: '#F7FAFF',
-    fontSize: '15px'
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('rol')
+      .eq('id', userId)
+      .single()
+
+    const rol = profile?.rol
+
+    if (rol === 'CLIENTE') {
+      window.location.replace('/mi-panel')
+    } else if (rol === 'ADMIN' || rol === 'SELLER') {
+      window.location.replace('/clientes')
+    } else if (rol === 'WAREHOUSE') {
+      window.location.replace('/stock')
+    } else if (rol === 'DRIVER') {
+      window.location.replace('/pedidos')
+    } else if (rol === 'SUPER_ADMIN') {
+      window.location.replace('/admin')
+    } else {
+      window.location.replace('/mi-panel')
+    }
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 relative overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/fabrica.jpeg)' }} />
-        <div className="absolute inset-0" style={{ background: 'rgba(11,31,58,0.70)' }} />
-      </div>
-
-      <div className="relative z-10 w-full max-w-sm flex flex-col gap-6">
-
-        {/* Logo + nombre */}
-        <div className="flex flex-col items-center gap-3 text-center">
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundImage: 'url(/fabrica.jpeg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div
+        style={{
+          minHeight: '100vh',
+          background: 'rgba(11,31,58,0.85)',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            background: '#0B1F3A',
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
           <img
             src="/logo.jpg"
-            alt="La Cooperativa Metalúrgica Argentina"
-            className="w-20 h-20 rounded-2xl object-cover cursor-pointer"
-            style={{ border: '2px solid rgba(74,123,181,0.4)' }}
-            onClick={() => window.location.href = '/'}
+            alt="Logo"
+            style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }}
           />
           <div>
-            <h1 className="font-semibold leading-snug" style={{ color: '#F7FAFF', fontSize: '18px' }}>
-              La Cooperativa Metalúrgica Argentina
-            </h1>
-            <p style={{ color: 'rgba(247,250,255,0.5)', fontSize: '13px', marginTop: '4px' }}>🇦🇷 Villa Lugano, CABA</p>
+            <div style={{ color: '#F7FAFF', fontSize: 15, fontWeight: 700 }}>La Metalúrgica</div>
+            <div style={{ color: '#4A7BB5', fontSize: 11 }}>Cooperativa Argentina</div>
           </div>
         </div>
 
-        {/* Beneficios */}
-        <div className="flex justify-between gap-2">
-          {[
-            { icon: <FileText size={16} />, text: 'Guardá presupuestos' },
-            { icon: <Calculator size={16} />, text: 'Historial de cálculos' },
-            { icon: <MessageCircle size={16} />, text: 'Pedidos por WhatsApp' },
-          ].map((b, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1 rounded-xl py-3 px-2 text-center"
-              style={{ background: 'rgba(30,106,200,0.15)', border: '1px solid rgba(30,106,200,0.2)' }}>
-              <span style={{ color: '#2DD4BF' }}>{b.icon}</span>
-              <span style={{ color: 'rgba(247,250,255,0.7)', fontSize: '11px', lineHeight: '1.3' }}>{b.text}</span>
+        {/* Contenido */}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px 16px',
+          }}
+        >
+          <div
+            style={{
+              background: 'rgba(11,31,58,0.75)',
+              backdropFilter: 'blur(14px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 16,
+              padding: '28px 24px',
+              width: '100%',
+              maxWidth: 380,
+            }}
+          >
+            {/* Badge */}
+            <div
+              style={{
+                background: 'rgba(45,212,191,0.15)',
+                color: '#2DD4BF',
+                borderRadius: 4,
+                fontSize: 11,
+                padding: '3px 8px',
+                display: 'inline-block',
+                marginBottom: 14,
+              }}
+            >
+              Redirect inteligente por rol
             </div>
-          ))}
-        </div>
 
-        {/* Card principal */}
-        <div className="flex flex-col gap-5 rounded-2xl px-6 py-7"
-          style={{ background: 'rgba(11,31,58,0.75)', backdropFilter: 'blur(14px)', border: '1px solid rgba(74,123,181,0.25)' }}>
+            <h1 style={{ color: '#F7FAFF', fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>
+              Ingresar
+            </h1>
+            <p style={{ color: '#4A7BB5', fontSize: 13, margin: '0 0 24px' }}>
+              Accedé a tu cuenta
+            </p>
 
-          {!showReset ? (
-            <>
-              <p className="text-center tracking-widest uppercase" style={{ color: 'rgba(247,250,255,0.5)', fontSize: '11px' }}>
-                Guardá tus presupuestos gratis
-              </p>
+            {/* Error */}
+            {error && (
+              <div
+                style={{
+                  background: 'rgba(226,75,74,0.12)',
+                  border: '1px solid rgba(226,75,74,0.3)',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  marginBottom: 16,
+                  color: '#E24B4A',
+                  fontSize: 13,
+                }}
+              >
+                {error}
+              </div>
+            )}
 
-              <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <label style={{ color: 'rgba(247,250,255,0.7)', fontSize: '13px' }}>Email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="usuario@ejemplo.com" required
-                    className="w-full rounded-xl px-4 outline-none transition-all"
-                    style={inputStyle}
-                    onFocus={e => (e.target.style.borderColor = 'rgba(30,106,200,0.6)')}
-                    onBlur={e => (e.target.style.borderColor = 'rgba(74,123,181,0.3)')} />
-                </div>
+            {/* Email */}
+            <label style={{ color: 'rgba(247,250,255,0.5)', fontSize: 12, display: 'block', marginBottom: 6 }}>
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              placeholder="usuario@email.com"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 8,
+                padding: '10px 12px',
+                color: '#F7FAFF',
+                fontSize: 14,
+                width: '100%',
+                boxSizing: 'border-box' as const,
+                marginBottom: 14,
+                opacity: loading ? 0.5 : 1,
+              }}
+            />
 
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <label style={{ color: 'rgba(247,250,255,0.7)', fontSize: '13px' }}>Contraseña</label>
-                    <button type="button" onClick={() => { setShowReset(true); setResetEmail(email) }}
-                      style={{ color: '#2DD4BF', fontSize: '12px' }}>
-                      ¿Olvidaste tu contraseña?
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <input type={showPassword ? 'text' : 'password'} value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder="Tu contraseña" required
-                      className="w-full rounded-xl px-4 pr-12 outline-none transition-all"
-                      style={inputStyle}
-                      onFocus={e => (e.target.style.borderColor = 'rgba(30,106,200,0.6)')}
-                      onBlur={e => (e.target.style.borderColor = 'rgba(74,123,181,0.3)')} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
-                      style={{ color: 'rgba(45,212,191,0.7)' }}>
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
+            {/* Contraseña */}
+            <label style={{ color: 'rgba(247,250,255,0.5)', fontSize: 12, display: 'block', marginBottom: 6 }}>
+              Contraseña
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              placeholder="••••••••"
+              onKeyDown={(e) => e.key === 'Enter' && !loading && handleLogin()}
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 8,
+                padding: '10px 12px',
+                color: '#F7FAFF',
+                fontSize: 14,
+                width: '100%',
+                boxSizing: 'border-box' as const,
+                marginBottom: 20,
+                opacity: loading ? 0.5 : 1,
+              }}
+            />
 
-                {error && (
-                  <div className="rounded-xl px-4 py-3 text-center"
-                    style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)', color: '#FCA5A5', fontSize: '13px' }}>
-                    {error}
-                    {error.includes('No tenés cuenta') && (
-                      <a href="/registro" style={{ color: '#2DD4BF', marginLeft: '4px', fontWeight: 500 }}>
-                        Registrate gratis
-                      </a>
-                    )}
-                  </div>
-                )}
+            {/* Banner roles */}
+            <div
+              style={{
+                background: 'rgba(45,212,191,0.10)',
+                border: '1px solid rgba(45,212,191,0.22)',
+                borderRadius: 8,
+                padding: '10px 12px',
+                marginBottom: 20,
+                opacity: loading ? 0.4 : 1,
+              }}
+            >
+              <div style={{ color: '#2DD4BF', fontSize: 11, lineHeight: 1.7 }}>
+                <span style={{ fontWeight: 700 }}>CLIENTE</span> → /mi-panel<br />
+                <span style={{ fontWeight: 700 }}>ADMIN / SELLER</span> → /clientes<br />
+                <span style={{ fontWeight: 700 }}>WAREHOUSE</span> → /stock<br />
+                <span style={{ fontWeight: 700 }}>DRIVER</span> → /pedidos
+              </div>
+            </div>
 
-                <button type="submit" disabled={loading}
-                  className="w-full rounded-xl font-semibold flex items-center justify-center gap-2"
-                  style={{ height: '48px', background: '#1E6AC8', color: '#F7FAFF', fontSize: '15px', opacity: loading ? 0.7 : 1 }}>
-                  {loading && <Loader2 size={16} className="animate-spin" />}
-                  {loading ? 'Ingresando...' : 'Ingresar'}
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <button onClick={() => { setShowReset(false); setResetSent(false); setError(null) }}
-                className="flex items-center gap-2 text-sm"
-                style={{ color: 'rgba(247,250,255,0.5)' }}>
-                ← Volver al login
-              </button>
-
-              {!resetSent ? (
+            {/* Botón */}
+            <button
+              onClick={handleLogin}
+              disabled={loading}
+              onMouseEnter={() => setHover(true)}
+              onMouseLeave={() => setHover(false)}
+              style={{
+                background: loading ? 'rgba(255,255,255,0.85)' : hover ? '#2DD4BF' : '#FFFFFF',
+                color: hover && !loading ? '#0B1F3A' : '#F7FAFF',
+                border: 'none',
+                borderRadius: 8,
+                padding: '12px',
+                width: '100%',
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.85 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'background 0.2s, color 0.2s',
+              }}
+            >
+              {loading ? (
                 <>
-                  <p className="text-center" style={{ color: 'rgba(247,250,255,0.7)', fontSize: '14px' }}>
-                    Te mandamos un link para restablecer tu contraseña
-                  </p>
-                  <form onSubmit={handleReset} className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label style={{ color: 'rgba(247,250,255,0.7)', fontSize: '13px' }}>Email</label>
-                      <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
-                        placeholder="usuario@ejemplo.com" required
-                        className="w-full rounded-xl px-4 outline-none"
-                        style={inputStyle} />
-                    </div>
-                    {error && (
-                      <div className="rounded-xl px-4 py-3 text-center"
-                        style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)', color: '#FCA5A5', fontSize: '13px' }}>
-                        {error}
-                      </div>
-                    )}
-                    <button type="submit" disabled={loadingReset}
-                      className="w-full rounded-xl font-semibold flex items-center justify-center gap-2"
-                      style={{ height: '48px', background: '#1E6AC8', color: '#F7FAFF', fontSize: '15px', opacity: loadingReset ? 0.7 : 1 }}>
-                      {loadingReset && <Loader2 size={16} className="animate-spin" />}
-                      {loadingReset ? 'Enviando...' : 'Enviar link'}
-                    </button>
-                  </form>
+                  <span
+                    style={{
+                      width: 14,
+                      height: 14,
+                      border: '2px solid rgba(11,31,58,0.2)',
+                      borderTopColor: '#0B1F3A',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      animation: 'spin 0.7s linear infinite',
+                    }}
+                  />
+                  Ingresando...
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-4 py-4 text-center">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center"
-                    style={{ background: 'rgba(45,212,191,0.15)', border: '1px solid rgba(45,212,191,0.4)' }}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                  <p style={{ color: '#F7FAFF', fontSize: '15px', fontWeight: 600 }}>¡Email enviado!</p>
-                  <p style={{ color: 'rgba(247,250,255,0.6)', fontSize: '13px', lineHeight: '1.5' }}>
-                    Revisá tu bandeja de entrada en <strong style={{ color: '#F7FAFF' }}>{resetEmail}</strong>
-                  </p>
-                </div>
+                'Ingresar'
               )}
-            </>
-          )}
+            </button>
+
+            {/* Link registro */}
+            <p
+              style={{
+                textAlign: 'center',
+                marginTop: 18,
+                fontSize: 13,
+                color: 'rgba(247,250,255,0.5)',
+                opacity: loading ? 0.3 : 1,
+              }}
+            >
+              ¿No tenés cuenta?{' '}
+              <a href="/registro" style={{ color: '#2DD4BF', textDecoration: 'none', fontWeight: 600 }}>
+                Registrate
+              </a>
+            </p>
+          </div>
         </div>
-
-        <p className="text-center" style={{ color: 'rgba(247,250,255,0.5)', fontSize: '14px' }}>
-          ¿No tenés cuenta?{' '}
-          <a href="/registro" style={{ color: '#2DD4BF', fontWeight: 500 }}>Registrate gratis</a>
-        </p>
-
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        input::placeholder { color: rgba(247,250,255,0.25); }
+        input:focus { outline: none; border-color: rgba(30,106,200,0.6) !important; }
+      `}</style>
     </div>
   )
-}
+} 
