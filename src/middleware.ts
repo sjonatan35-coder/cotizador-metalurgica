@@ -2,42 +2,33 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Rutas que requieren solo estar logueado
-const RUTAS_AUTH = ['/stock', '/dashboard', '/perfil', '/clientes']
-
-// Rutas que requieren rol ADMIN o SUPER_ADMIN
-const RUTAS_ADMIN = ['/admin', '/api/admin']
+const RUTAS_INTERNAS = ['/clientes', '/stock', '/dashboard', '/presupuestos', '/perfil']
+const RUTAS_ADMIN    = ['/admin', '/api/admin']
+const RUTAS_CLIENTE  = ['/mi-panel', '/mis-presupuestos']
+const ROLES_INTERNOS = ['ADMIN', 'SELLER', 'WAREHOUSE', 'DRIVER', 'SUPER_ADMIN']
 
 type CookieToSet = { name: string; value: string; options?: Record<string, unknown> }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  const esRutaAuth = RUTAS_AUTH.some(r => pathname.startsWith(r))
-  const esRutaAdmin = RUTAS_ADMIN.some(r => pathname.startsWith(r))
+  const esRutaInterna = RUTAS_INTERNAS.some(r => pathname.startsWith(r))
+  const esRutaAdmin   = RUTAS_ADMIN.some(r => pathname.startsWith(r))
+  const esRutaCliente = RUTAS_CLIENTE.some(r => pathname.startsWith(r))
 
-  // Si no es ruta protegida, pasa directo
-  if (!esRutaAuth && !esRutaAdmin) return NextResponse.next()
+  if (!esRutaInterna && !esRutaAdmin && !esRutaCliente) return NextResponse.next()
 
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  })
+  let response = NextResponse.next({ request: { headers: request.headers } })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
+        getAll() { return request.cookies.getAll() },
         setAll(cookiesToSet: CookieToSet[]) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          })
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request: { headers: request.headers } })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2])
           )
@@ -46,7 +37,6 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Chequear sesión
   const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
@@ -55,20 +45,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Chequear rol para rutas admin
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('rol, tokens')
+    .eq('id', user.id)
+    .single()
+
+  const rol = profile?.rol ?? 'CLIENTE'
+
   if (esRutaAdmin) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    if (rol !== 'SUPER_ADMIN') return NextResponse.redirect(new URL('/', request.url))
+    return response
+  }
 
-    const rolPermitido = profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
+  if (esRutaInterna) {
+    if (!ROLES_INTERNOS.includes(rol)) return NextResponse.redirect(new URL('/mi-panel', request.url))
+    return response
+  }
 
-    if (!rolPermitido) {
-      // Logueado pero sin permiso → va al inicio, no al login
-      return NextResponse.redirect(new URL('/', request.url))
-    }
+  if (esRutaCliente) {
+    if (ROLES_INTERNOS.includes(rol)) return NextResponse.redirect(new URL('/clientes', request.url))
+    return response
   }
 
   return response
