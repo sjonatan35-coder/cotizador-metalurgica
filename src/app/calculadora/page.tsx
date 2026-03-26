@@ -275,7 +275,19 @@ export default function CalculadoraPage() {
     setPaso(2)
   }
 
+  // ── EVENTO 1 agregado: calculadora_material_elegido ──
   function elegirMaterial(material: Material) {
+    const supabase = createClient()
+    const utmRaw = localStorage.getItem('metalurgica_utm')
+    const utm = utmRaw ? JSON.parse(utmRaw) : null
+    supabase.from('eventos_app').insert({
+      evento: 'calculadora_material_elegido',
+      proyecto_id: proyectoSeleccionado?.id ?? null,
+      material: material,
+      fuente: utm?.source ?? 'directo',
+    }).then(() => {})
+
+    // Lógica original
     setMaterialSeleccionado(material)
     setAcabadoSeleccionado(null)
     setPaso(3)
