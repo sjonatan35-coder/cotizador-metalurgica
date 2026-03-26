@@ -63,7 +63,7 @@ function NuevoPresupuestoContent() {
   const [numero, setNumero] = useState('PRES-0000')
   const [clienteNombre, setClienteNombre] = useState('')
   const [clienteTelefono, setClienteTelefono] = useState('')
-  const [validezDias, setValidezDias] = useState(7)
+  const [validezDias, setValidezDias] = useState(1)
   const [notas, setNotas] = useState('')
   const [items, setItems] = useState<Item[]>([{ ...ITEM_VACIO }])
 
@@ -179,7 +179,8 @@ function NuevoPresupuestoContent() {
       `Cliente: ${clienteNombre}\n\n` +
       `${itemsTexto}\n\n` +
       `*Total: $${total.toLocaleString('es-AR')}*\n\n` +
-      `Válido por ${validezDias} días.\n` +
+      `Válido por ${validezDias} día${validezDias !== 1 ? 's' : ''}.\n` +
+      `⚠️ El valor se confirma desde el momento del pago.\n` +
       `${notas ? '\n' + notas : ''}`
     )
     const url = tel
@@ -247,6 +248,7 @@ function NuevoPresupuestoContent() {
               <label className="text-xs text-slate-500 mb-1 block">Válido por</label>
               <select value={validezDias} onChange={e => setValidezDias(Number(e.target.value))}
                 className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400">
+                <option value={1}>1 día</option>
                 <option value={3}>3 días</option>
                 <option value={7}>7 días</option>
                 <option value={15}>15 días</option>
@@ -352,6 +354,13 @@ function NuevoPresupuestoContent() {
           <span className="text-[#2DD4BF] text-xl font-semibold">${total.toLocaleString('es-AR')}</span>
         </div>
 
+        {/* Leyenda validez */}
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl px-4 py-3">
+          <p className="text-xs text-amber-700 font-medium">
+            ⚠️ Válido por {validezDias} día{validezDias !== 1 ? 's' : ''}. El valor se confirma desde el momento del pago.
+          </p>
+        </div>
+
         {/* Notas */}
         <section className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">Notas</label>
@@ -455,7 +464,7 @@ function NuevoPresupuestoContent() {
           )}
 
           <div style={{ borderTop: '1px solid #e2eaf3', paddingTop: 12, fontSize: 10, color: '#999', textAlign: 'center' }}>
-            Precios en pesos argentinos · Sujeto a disponibilidad de stock · Válido por {validezDias} días desde la fecha de emisión
+            Precios en pesos argentinos · Sujeto a disponibilidad de stock · Válido por {validezDias} día{validezDias !== 1 ? 's' : ''} desde la fecha de emisión · El valor se confirma desde el momento del pago
           </div>
         </div>
       )}
