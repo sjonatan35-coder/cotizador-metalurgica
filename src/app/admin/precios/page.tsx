@@ -70,11 +70,7 @@ export default function AdminPrecios() {
 
   useEffect(() => {
     const cargar = async () => {
-      const { data } = await supabase
-        .from('productos')
-        .select('id, nombre, tipo, activo')
-        .eq('activo', true)
-        .order('nombre')
+      const { data } = await supabase.from('productos').select('id, nombre, tipo, activo').eq('activo', true).order('nombre')
       if (data) setProductos(data)
     }
     cargar()
@@ -88,46 +84,23 @@ export default function AdminPrecios() {
 
   const cargarPrecio = async () => {
     setCargando(true)
-    const { data } = await supabase
-      .from('precios')
-      .select('*')
-      .eq('producto_id', productoId)
-      .maybeSingle()
-
+    const { data } = await supabase.from('precios').select('*').eq('producto_id', productoId).maybeSingle()
     if (data) {
       setPrecio(data)
     } else {
-      setPrecio({
-        producto_id: productoId,
-        precio_unidad: null,
-        precio_mayorista: null,
-        precio_vip: null,
-        precio_interno: null,
-        precio_tonelada: null,
-        margen_minimo: 20,
-        activo_vip: false,
-        notas: null,
-      })
+      setPrecio({ producto_id: productoId, precio_unidad: null, precio_mayorista: null, precio_vip: null, precio_interno: null, precio_tonelada: null, margen_minimo: 20, activo_vip: false, notas: null })
     }
     setCargando(false)
   }
 
   const cargarHistorial = async () => {
-    const { data } = await supabase
-      .from('precios_historial')
-      .select('*')
-      .eq('producto_id', productoId)
-      .order('created_at', { ascending: false })
-      .limit(8)
+    const { data } = await supabase.from('precios_historial').select('*').eq('producto_id', productoId).order('created_at', { ascending: false }).limit(8)
     if (data) setHistorial(data)
   }
 
   const guardarDolar = () => {
     const valor = parseFloat(nuevoDolar.replace(',', '.'))
-    if (isNaN(valor) || valor <= 0) {
-      mostrarMensaje('Ingresá un valor válido', 'error')
-      return
-    }
+    if (isNaN(valor) || valor <= 0) { mostrarMensaje('Ingresá un valor válido', 'error'); return }
     const hoy = new Date().toLocaleDateString('es-AR')
     localStorage.setItem('metalurgica_dolar_bna', JSON.stringify({ valor, fecha: hoy }))
     setDolarBna(valor)
@@ -148,7 +121,6 @@ export default function AdminPrecios() {
   const guardarPrecios = async () => {
     if (!precio || !productoId) return
     setGuardando(true)
-
     const payload = {
       producto_id: productoId,
       precio_unidad: precio.precio_unidad,
@@ -160,37 +132,19 @@ export default function AdminPrecios() {
       activo_vip: precio.activo_vip,
       notas: precio.notas,
     }
-
     if (precio.id) {
-      const { error } = await supabase
-        .from('precios')
-        .update({ ...payload, updated_at: new Date().toISOString() })
-        .eq('id', precio.id)
-      if (error) {
-        mostrarMensaje('Error al guardar: ' + error.message, 'error')
-      } else {
-        mostrarMensaje('Precios guardados', 'ok')
-        await cargarPrecio()
-        await cargarHistorial()
-      }
+      const { error } = await supabase.from('precios').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', precio.id)
+      if (error) mostrarMensaje('Error al guardar: ' + error.message, 'error')
+      else { mostrarMensaje('Precios guardados', 'ok'); await cargarPrecio(); await cargarHistorial() }
     } else {
-      const { error } = await supabase
-        .from('precios')
-        .insert(payload)
-      if (error) {
-        mostrarMensaje('Error al guardar: ' + error.message, 'error')
-      } else {
-        mostrarMensaje('Precios guardados', 'ok')
-        await cargarPrecio()
-        await cargarHistorial()
-      }
+      const { error } = await supabase.from('precios').insert(payload)
+      if (error) mostrarMensaje('Error al guardar: ' + error.message, 'error')
+      else { mostrarMensaje('Precios guardados', 'ok'); await cargarPrecio(); await cargarHistorial() }
     }
-
     setGuardando(false)
   }
 
-  const formatARS = (v: number | null) =>
-    v != null ? `$${v.toLocaleString('es-AR')}` : '—'
+  const formatARS = (v: number | null) => v != null ? `$${v.toLocaleString('es-AR')}` : '—'
 
   const s = {
     page: { minHeight: '100vh', background: '#0B1F3A', fontFamily: "'DM Sans', sans-serif" } as React.CSSProperties,
@@ -214,10 +168,13 @@ export default function AdminPrecios() {
         </div>
       )}
 
+      {/* Header */}
       <div style={s.header}>
-        <button onClick={() => router.push('/admin/productos')} style={{ background: 'none', border: 'none', color: '#2DD4BF', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, padding: 0 }}>
-          <ArrowLeft size={16} /> Productos
+        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', color: '#2DD4BF', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, padding: 0 }}>
+          <ArrowLeft size={16} />
         </button>
+        <img src="/logo.jpg" alt="La Metalúrgica" onClick={() => router.push('/admin/productos')}
+          style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', cursor: 'pointer', border: '1.5px solid rgba(74,123,181,0.4)' }} />
         <div style={{ flex: 1, textAlign: 'center' }}>
           <div style={{ color: '#F7FAFF', fontSize: 15, fontWeight: 600 }}>Precios</div>
           <div style={{ color: '#2DD4BF', fontSize: 11 }}>Panel Admin</div>
@@ -236,19 +193,9 @@ export default function AdminPrecios() {
               </span>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input
-                style={{ ...s.input, flex: 1, padding: '8px 10px', fontSize: 13 }}
-                placeholder="Ej: 1250"
-                value={nuevoDolar}
-                onChange={e => setNuevoDolar(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && guardarDolar()}
-              />
-              <button onClick={guardarDolar} style={{ padding: '8px 14px', background: '#1E6AC8', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                Actualizar
-              </button>
-              <button onClick={() => setMostrarAlertaDolar(false)} style={{ padding: '8px 10px', background: 'none', border: '1px solid #d1dce8', borderRadius: 8, fontSize: 13, color: '#4A7BB5', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                Usar mismo
-              </button>
+              <input style={{ ...s.input, flex: 1, padding: '8px 10px', fontSize: 13 }} placeholder="Ej: 1250" value={nuevoDolar} onChange={e => setNuevoDolar(e.target.value)} onKeyDown={e => e.key === 'Enter' && guardarDolar()} />
+              <button onClick={guardarDolar} style={{ padding: '8px 14px', background: '#1E6AC8', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>Actualizar</button>
+              <button onClick={() => setMostrarAlertaDolar(false)} style={{ padding: '8px 10px', background: 'none', border: '1px solid #d1dce8', borderRadius: 8, fontSize: 13, color: '#4A7BB5', cursor: 'pointer', whiteSpace: 'nowrap' }}>Usar mismo</button>
             </div>
           </div>
         )}
@@ -258,9 +205,7 @@ export default function AdminPrecios() {
             <span style={{ fontSize: 12, color: '#0F6E56', display: 'flex', alignItems: 'center', gap: 4 }}>
               <DollarSign size={13} /> Dólar BNA: <strong style={{ marginLeft: 2 }}>{formatARS(dolarBna)}</strong> — {dolarFecha}
             </span>
-            <button onClick={() => setMostrarAlertaDolar(true)} style={{ fontSize: 11, color: '#0F6E56', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-              Cambiar
-            </button>
+            <button onClick={() => setMostrarAlertaDolar(true)} style={{ fontSize: 11, color: '#0F6E56', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Cambiar</button>
           </div>
         )}
 
@@ -268,9 +213,7 @@ export default function AdminPrecios() {
           <label style={s.label}>Seleccioná un producto</label>
           <select style={s.select} value={productoId} onChange={e => setProductoId(e.target.value)}>
             <option value="">— Elegí un producto —</option>
-            {productos.map(p => (
-              <option key={p.id} value={p.id}>{p.nombre} ({p.tipo})</option>
-            ))}
+            {productos.map(p => <option key={p.id} value={p.id}>{p.nombre} ({p.tipo})</option>)}
           </select>
         </div>
 
