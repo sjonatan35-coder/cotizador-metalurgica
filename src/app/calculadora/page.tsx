@@ -325,6 +325,24 @@ export default function CalculadoraPage() {
     setPaso(5)
   }
 
+  // ── EVENTO 4: whatsapp click ──
+  function handleWhatsAppClick() {
+    const chapas = calcularChapas()
+    const pesoKg = calcularPesoResultado()
+    registrarEvento('calculadora_whatsapp_click', {
+      proyecto_id: proyectoSeleccionado?.id ?? null,
+      material: materialSeleccionado ?? null,
+      calibre: calibreSeleccionado?.calibre ?? null,
+      metadata: {
+        chapas,
+        peso_kg: pesoKg ? parseFloat(pesoKg.toFixed(2)) : null,
+        modo_calculo: modoCalculo,
+        sesion: sesionActiva,
+      },
+    })
+    window.open(`https://wa.me/${WA_NUMBER}?text=${generarMensajeWA()}`, '_blank')
+  }
+
   function volverAtras() {
     if (paso === 2) {
       setPaso(1); setProyectoSeleccionado(null)
@@ -375,6 +393,36 @@ export default function CalculadoraPage() {
   const chapasCalculadas = calcularChapas()
   const pesoCalculado    = calcularPesoResultado()
   const logica           = proyectoSeleccionado?.logica
+
+  // ── Vista previa del mensaje WA ──
+  function MensajePreview() {
+    const medida = getMedidas()[medidaIdx]
+    const medidaLabel = esAMedida()
+      ? `${aMedidaAncho}m × ${aMedidaLargo}m (a medida)`
+      : medida?.label ?? ''
+    return (
+      <div className="rounded-xl p-4 mb-3"
+        style={{ background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)' }}>
+        <p className="text-xs font-semibold mb-2" style={{ color: '#1a9e52' }}>
+          Vista previa del mensaje que se va a enviar
+        </p>
+        <div className="rounded-lg p-3 text-xs leading-relaxed"
+          style={{ background: 'white', border: '1px solid rgba(37,211,102,0.15)', color: '#374151', fontFamily: 'monospace' }}>
+          <p>🏭 <strong>Pedido — La Cooperativa Metalúrgica Argentina</strong></p>
+          <p className="mt-1">📋 Proyecto: {proyectoSeleccionado?.label}</p>
+          <p>🔩 Material: {materialSeleccionado} — {ACABADO_LABELS[acabadoSeleccionado!]}</p>
+          <p>📐 Calibre: c{calibreSeleccionado?.calibre} ({calibreSeleccionado?.thicknessMm} mm)</p>
+          <p>📏 Medida: {medidaLabel}</p>
+          <p>🔢 Cantidad: {chapasCalculadas} chapas</p>
+          <p>⚖️ Peso total: {pesoCalculado?.toFixed(2)} kg</p>
+        </div>
+        <div className="flex items-center gap-2 mt-2 px-1">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a9e52" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <p className="text-xs" style={{ color: '#1a9e52' }}>Respondemos lunes a sábado de 5 a 18hs</p>
+        </div>
+      </div>
+    )
+  }
 
   function BannerUsos() {
     if (sesionActiva || bloqueado) return null
@@ -652,7 +700,9 @@ export default function CalculadoraPage() {
         {paso === 5 && proyectoSeleccionado && materialSeleccionado && acabadoSeleccionado && calibreSeleccionado && (
           <div className="pt-4">
             <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1 text-blue-600">← Volver</button>
-            <h2 className="text-xl font-bold text-gray-900 mb-5">Tu pedido</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Tu pedido</h2>
+
+            {/* Resumen */}
             <div className="bg-white rounded-2xl border-2 border-blue-400 p-5 mb-4 flex flex-col gap-3">
               <div className="flex justify-between text-sm"><span className="text-gray-400">Proyecto</span><span className="font-bold text-gray-900">{proyectoSeleccionado.label}</span></div>
               <div className="flex justify-between text-sm"><span className="text-gray-400">Material</span><span className="font-bold text-gray-900">{MATERIAL_INFO[materialSeleccionado].label}</span></div>
@@ -665,20 +715,37 @@ export default function CalculadoraPage() {
               </div>
               <div className="flex justify-between text-sm"><span className="text-gray-400">Peso total</span><span className="font-bold text-gray-900">{pesoCalculado?.toFixed(2)} kg</span></div>
             </div>
-            <button onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${generarMensajeWA()}`, '_blank')}
-              className="w-full rounded-xl py-4 font-bold text-base flex items-center justify-center gap-2 mb-3 text-white"
-              style={{ background: '#25D366' }}>
-              📲 Enviar pedido por WhatsApp
+
+            {/* Vista previa WA */}
+            <MensajePreview />
+
+            {/* Botón WA mejorado */}
+            <button
+              onClick={handleWhatsAppClick}
+              className="w-full rounded-xl font-bold text-base flex flex-col items-center justify-center gap-1 mb-3 text-white"
+              style={{ background: '#25D366', padding: '14px 16px' }}>
+              <span>📲 Enviar pedido por WhatsApp</span>
+              <span className="text-xs font-normal opacity-90">Se abre WhatsApp con el mensaje listo — solo tocás enviar</span>
             </button>
+
+            {/* Separador orientativo */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">o si preferís un documento formal</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
             <a href={generarLinkPresupuesto()}
               className="w-full rounded-xl py-4 font-bold text-base flex items-center justify-center gap-2 mb-3 text-white"
               style={{ background: '#1E6AC8', textDecoration: 'none' }}>
-              📄 Generar presupuesto
+              📄 Generar presupuesto con PDF
             </a>
+
             <button onClick={() => { setPaso(1); setProyectoSeleccionado(null); setMaterialSeleccionado(null); setAcabadoSeleccionado(null); setCalibreSeleccionado(null) }}
               className="w-full py-3 text-sm font-medium rounded-xl mb-4 border-2 border-gray-200 text-gray-600 bg-white">
               Hacer otro pedido
             </button>
+
             <div className="px-4 py-3 rounded-2xl flex items-center gap-3 bg-white border border-gray-200">
               <img src="/logo.jpg" alt="Logo" className="rounded-xl object-cover flex-shrink-0 cursor-pointer"
                 onClick={() => router.push('/')}
