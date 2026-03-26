@@ -2,14 +2,12 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const RUTAS_PROTEGIDAS = ['/stock', '/dashboard', '/perfil']
-
+const RUTAS_PROTEGIDAS = ['/stock', '/dashboard', '/perfil', '/admin']
 
 type CookieToSet = { name: string; value: string; options?: Record<string, unknown> }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-
   const esProtegida = RUTAS_PROTEGIDAS.some(r => pathname.startsWith(r))
   if (!esProtegida) return NextResponse.next()
 
@@ -40,9 +38,9 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (error || !user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)
