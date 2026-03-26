@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/useToast'
+import Toast from '@/components/ui/Toast'
+import { Calendar, Clock } from 'lucide-react'
 
 type EstadoLead = 'nuevo' | 'contactado' | 'interesado' | 'cotizado' | 'cerrado' | 'perdido'
 
@@ -21,6 +24,9 @@ type Cliente = {
   lead_score: number | null
   creditos: number | null
   created_at: string
+  proxima_accion_texto: string | null
+  proxima_accion_fecha: string | null
+  primer_producto_interes: string | null
 }
 
 const ESTADOS: EstadoLead[] = ['nuevo', 'contactado', 'interesado', 'cotizado', 'cerrado', 'perdido']
@@ -45,12 +51,14 @@ export default function ClienteDetallePage() {
   const params = useParams()
   const supabase = createClient()
   const id = params.id as string
+  const { toasts, toast, removeToast } = useToast()
 
   const [cliente, setCliente] = useState<Cliente | null>(null)
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [notaNueva, setNotaNueva] = useState('')
   const [mostrarNota, setMostrarNota] = useState(false)
+  const [autorNombre, setAutorNombre] = useState('Vendedor')
 
   useEffect(() => {
     const fetchCliente = async () => {
@@ -58,19 +66,35 @@ export default function ClienteDetallePage() {
       if (data) setCliente(data)
       setLoading(false)
     }
+    const fetchAutor = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('nombre')
+          .eq('id', user.id)
+          .single()
+        if (profile?.nombre) setAutorNombre(profile.nombre)
+      }
+    }
     fetchCliente()
+    fetchAutor()
   }, [id])
 
   async function cambiarEstado(estado: EstadoLead) {
     if (!cliente) return
     setCliente({ ...cliente, estado_lead: estado })
-    await supabase.from('clientes').update({ estado_lead: estado }).eq('id', id)
+    const { error } = await supabase.from('clientes').update({ estado_lead: estado }).eq('id', id)
+    if (error) toast.error('Error al cambiar estado')
+    else toast.success(`Estado: ${estado.charAt(0).toUpperCase() + estado.slice(1)} ✓`)
   }
 
   async function cambiarScore(score: number) {
     if (!cliente) return
     setCliente({ ...cliente, lead_score: score })
-    await supabase.from('clientes').update({ lead_score: score }).eq('id', id)
+    const { error } = await supabase.from('clientes').update({ lead_score: score }).eq('id', id)
+    if (error) toast.error('Error al guardar score')
+    else toast.success(`Score actualizado ✓`)
   }
 
   async function guardarNota() {
@@ -78,11 +102,17 @@ export default function ClienteDetallePage() {
     setGuardando(true)
     const notaActual = cliente.notas ?? ''
     const fecha = new Date().toLocaleDateString('es-AR')
-    const nuevaNota = `[${fecha}] ${notaNueva.trim()}\n${notaActual}`
-    await supabase.from('clientes').update({ notas: nuevaNota }).eq('id', id)
-    setCliente({ ...cliente, notas: nuevaNota })
-    setNotaNueva('')
-    setMostrarNota(false)
+    const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+    const nuevaNota = `[${fecha} ${hora} — ${autorNombre}] ${notaNueva.trim()}\n${notaActual}`
+    const { error } = await supabase.from('clientes').update({ notas: nuevaNota }).eq('id', id)
+    if (error) {
+      toast.error('Error al guardar nota')
+    } else {
+      setCliente({ ...cliente, notas: nuevaNota })
+      setNotaNueva('')
+      setMostrarNota(false)
+      toast.success('Nota guardada ✓')
+    }
     setGuardando(false)
   }
 
@@ -99,14 +129,27 @@ export default function ClienteDetallePage() {
   )
 
   const notas = cliente.notas ? cliente.notas.split('\n').filter(n => n.trim()) : []
-  const scoreLabel = cliente.lead_score === 5 ? 'Listo para cerrar' : cliente.lead_score === 4 ? 'Muy interesado' : cliente.lead_score === 3 ? 'Interesado' : cliente.lead_score === 2 ? 'Tibio' : 'Frio'
+  const scoreLabel = cliente.lead_score === 5 ? 'Listo para cerrar' : cliente.lead_score === 4 ? 'Muy interesado' : cliente.lead_score === 3 ? 'Interesado' : cliente.lead_score === 2 ? 'Tibio' : 'Frío'
+
+  const proximaFechaLabel = cliente.proxima_accion_fecha
+    ? new Date(cliente.proxima_accion_fecha + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
+    : null
+
+  const proximaVencida = cliente.proxima_accion_fecha
+    ? new Date(cliente.proxima_accion_fecha + 'T12:00:00') < new Date()
+    : false
 
   return (
     <div className="min-h-screen bg-white pb-20">
+      <Toast toasts={toasts} onRemove={removeToast} />
 
+      {/* Header */}
       <div className="bg-[#0B1F3A] px-4 pt-4 pb-4 flex items-center gap-3">
         <button onClick={() => router.push('/clientes')} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </button>
+        <button onClick={() => router.push('/')} className="flex-shrink-0">
+          <img src="/logo.jpg" alt="La Metalúrgica" className="h-8 w-8 rounded-lg object-cover" />
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-white font-medium text-base leading-tight truncate">{cliente.nombre}</h1>
@@ -117,6 +160,7 @@ export default function ClienteDetallePage() {
         </button>
       </div>
 
+      {/* Info principal */}
       <div className="bg-white px-4 pt-4 pb-4 border-b-2 border-slate-200">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-base font-medium text-blue-700 flex-shrink-0">
@@ -132,12 +176,16 @@ export default function ClienteDetallePage() {
           {cliente.tipo_cliente && (
             <span className="text-xs bg-blue-50 text-blue-700 border border-blue-300 rounded-full px-2.5 py-1 font-medium">{cliente.tipo_cliente}</span>
           )}
+          {cliente.primer_producto_interes && (
+            <span className="text-xs bg-purple-50 text-purple-700 border border-purple-300 rounded-full px-2.5 py-1 font-medium">{cliente.primer_producto_interes}</span>
+          )}
           {cliente.urgencia === 'alta' && (
             <span className="text-xs bg-red-50 text-red-700 border border-red-300 rounded-full px-2.5 py-1 font-medium">Urgente</span>
           )}
         </div>
       </div>
 
+      {/* Estado del lead */}
       <div className="bg-slate-50 px-4 py-3 border-b-2 border-slate-200">
         <div className="flex gap-2 overflow-x-auto pb-1" style={{scrollbarWidth:'none'}}>
           {ESTADOS.map(e => (
@@ -151,7 +199,31 @@ export default function ClienteDetallePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 px-4 py-4 bg-white border-b-2 border-slate-200">
+      {/* Próxima acción */}
+      {(cliente.proxima_accion_texto || cliente.proxima_accion_fecha) && (
+        <div className={`mx-4 mt-4 rounded-xl p-3 border-2 flex items-start gap-3 ${proximaVencida ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'}`}>
+          <div className={`mt-0.5 ${proximaVencida ? 'text-red-500' : 'text-blue-500'}`}>
+            {proximaVencida ? <Clock size={16} /> : <Calendar size={16} />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`text-xs font-semibold mb-0.5 ${proximaVencida ? 'text-red-600' : 'text-blue-600'}`}>
+              {proximaVencida ? 'Acción vencida' : 'Próxima acción'}
+            </p>
+            {cliente.proxima_accion_texto && (
+              <p className="text-sm text-slate-700 leading-snug">{cliente.proxima_accion_texto}</p>
+            )}
+            {proximaFechaLabel && (
+              <p className={`text-xs mt-1 font-medium ${proximaVencida ? 'text-red-500' : 'text-blue-500'}`}>{proximaFechaLabel}</p>
+            )}
+          </div>
+          <button onClick={() => router.push(`/clientes/${id}/editar`)} className="text-xs text-slate-400 hover:text-slate-600 flex-shrink-0">
+            Editar
+          </button>
+        </div>
+      )}
+
+      {/* Acciones */}
+      <div className="grid grid-cols-3 gap-3 px-4 py-4 bg-white border-b-2 border-slate-200 mt-4">
         {cliente.telefono && (
           <a href={`https://wa.me/${cliente.telefono.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
             className="flex flex-col items-center gap-2 py-3 rounded-xl border-2 border-slate-200 bg-slate-50">
@@ -175,6 +247,7 @@ export default function ClienteDetallePage() {
         )}
       </div>
 
+      {/* Lead info */}
       <div className="px-4 py-4 border-b-2 border-slate-200">
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Lead</p>
         <div className="flex items-center justify-between bg-slate-100 border-2 border-slate-300 rounded-xl px-4 py-3 mb-3">
@@ -193,7 +266,7 @@ export default function ClienteDetallePage() {
           {cliente.fuente && (
             <div className="bg-slate-100 border-2 border-slate-300 rounded-xl p-3">
               <div className="text-xs text-slate-500 font-medium mb-1">Fuente</div>
-              <div className="text-sm font-medium text-slate-800 capitalize">{cliente.fuente}</div>
+              <div className="text-sm font-medium text-slate-800">{cliente.fuente}</div>
             </div>
           )}
           {cliente.urgencia && (
@@ -206,7 +279,7 @@ export default function ClienteDetallePage() {
           )}
           {cliente.telefono && (
             <div className="bg-slate-100 border-2 border-slate-300 rounded-xl p-3">
-              <div className="text-xs text-slate-500 font-medium mb-1">Telefono</div>
+              <div className="text-xs text-slate-500 font-medium mb-1">Teléfono</div>
               <div className="text-sm font-medium text-blue-600">{cliente.telefono}</div>
             </div>
           )}
@@ -219,6 +292,7 @@ export default function ClienteDetallePage() {
         </div>
       </div>
 
+      {/* Notas */}
       <div className="px-4 py-4">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Notas</p>
@@ -226,8 +300,9 @@ export default function ClienteDetallePage() {
         </div>
         {mostrarNota && (
           <div className="mb-3">
-            <textarea value={notaNueva} onChange={e => setNotaNueva(e.target.value)} placeholder="Escribi una nota..." rows={3}
+            <textarea value={notaNueva} onChange={e => setNotaNueva(e.target.value)} placeholder="Escribí una nota..." rows={3}
               className="w-full border-2 border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none resize-none bg-slate-50"/>
+            <p className="text-xs text-slate-400 mt-1">Se guardará como: {autorNombre} — {new Date().toLocaleDateString('es-AR')}</p>
             <div className="flex gap-2 mt-2">
               <button onClick={() => setMostrarNota(false)} className="flex-1 py-2.5 text-sm text-slate-500 border-2 border-slate-300 rounded-xl bg-slate-50">Cancelar</button>
               <button onClick={guardarNota} disabled={guardando} className="flex-1 py-2.5 text-sm text-white bg-[#1E6AC8] rounded-xl font-medium">
@@ -237,17 +312,24 @@ export default function ClienteDetallePage() {
           </div>
         )}
         {notas.length === 0 && !mostrarNota && (
-          <p className="text-sm text-slate-400 text-center py-6">Sin notas todavia</p>
+          <p className="text-sm text-slate-400 text-center py-6">Sin notas todavía</p>
         )}
         <div className="flex flex-col gap-2">
-          {notas.map((nota, i) => (
-            <div key={i} className="bg-slate-100 border-2 border-slate-300 rounded-xl p-3">
-              <p className="text-sm text-slate-700 leading-relaxed">{nota}</p>
-            </div>
-          ))}
+          {notas.map((nota, i) => {
+            const match = nota.match(/^\[(.+?)\] (.+)$/)
+            const encabezado = match ? match[1] : null
+            const contenido = match ? match[2] : nota
+            return (
+              <div key={i} className="bg-slate-100 border-2 border-slate-300 rounded-xl p-3">
+                {encabezado && <p className="text-xs text-slate-400 font-medium mb-1">{encabezado}</p>}
+                <p className="text-sm text-slate-700 leading-relaxed">{contenido}</p>
+              </div>
+            )
+          })}
         </div>
       </div>
 
+      {/* Nav */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-200 grid grid-cols-4 py-2 z-10">
         <button onClick={() => router.push('/')} className="flex flex-col items-center gap-1 text-slate-400">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
