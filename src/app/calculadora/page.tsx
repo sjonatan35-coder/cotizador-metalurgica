@@ -16,6 +16,7 @@ import {
 } from '@/lib/calibres'
 import type { CalibreBwg } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 const WA_NUMBER = '5491159396358'
 const STORAGE_KEY = 'metalurgica_usos_calculadora'
@@ -105,8 +106,9 @@ function PantallaBloqueo() {
         <div className="absolute inset-0" style={{ background: 'rgba(11,31,58,0.72)' }} />
       </div>
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center gap-6 text-center">
-        <img src="/logo.jpg" alt="Logo" className="w-20 h-20 rounded-2xl object-cover"
-          style={{ border: '2px solid rgba(74,123,181,0.4)' }} />
+        <img src="/logo.jpg" alt="Logo" className="w-20 h-20 rounded-2xl object-cover cursor-pointer"
+          style={{ border: '2px solid rgba(74,123,181,0.4)' }}
+          onClick={() => window.location.href = '/'} />
         <div className="w-full rounded-2xl px-6 py-8 flex flex-col items-center gap-5"
           style={{ background: 'rgba(11,31,58,0.75)', backdropFilter: 'blur(14px)', border: '1px solid rgba(220,38,38,0.3)' }}>
           <div className="w-16 h-16 rounded-full flex items-center justify-center"
@@ -140,6 +142,7 @@ function PantallaBloqueo() {
 }
 
 export default function CalculadoraPage() {
+  const router = useRouter()
   const [paso, setPaso] = useState<Paso>(1)
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState<Proyecto | null>(null)
   const [materialSeleccionado, setMaterialSeleccionado] = useState<Material | null>(null)
@@ -295,8 +298,8 @@ export default function CalculadoraPage() {
     const lines = [
       '🏭 *Pedido — La Cooperativa Metalúrgica Argentina*',
       '',
-      `📦 Proyecto: ${proyectoSeleccionado?.label}`,
-      `🔩 Material: ${materialSeleccionado} — ${ACABADO_LABELS[acabadoSeleccionado!]}`,
+      `📋 Proyecto: ${proyectoSeleccionado?.label}`,
+      `🔧 Material: ${materialSeleccionado} — ${ACABADO_LABELS[acabadoSeleccionado!]}`,
       `📐 Calibre: ${calibreSeleccionado?.calibre} BWG (${calibreSeleccionado?.thicknessMm} mm)`,
       `📏 Medida: ${medidaLabel}`,
       `🔢 Cantidad: ${chapas} chapas`,
@@ -314,7 +317,7 @@ export default function CalculadoraPage() {
   function BannerUsos() {
     if (sesionActiva || bloqueado) return null
     const esUltimo = usosGratis === MAX_USOS_GRATIS - 1
-    const texto = esUltimo ? 'Último cálculo gratuito' : `Cálculo ${usosGratis + 1} de ${MAX_USOS_GRATIS} gratuitos`
+    const texto = esUltimo ? 'último cálculo gratuito' : `Cálculo ${usosGratis + 1} de ${MAX_USOS_GRATIS} gratuitos`
     return (
       <div className="mx-4 mb-3 px-4 py-2 rounded-xl flex items-center gap-2 text-xs"
         style={{ background: esUltimo ? 'rgba(250,199,117,0.15)' : 'rgba(30,106,200,0.08)', border: `1px solid ${esUltimo ? 'rgba(250,199,117,0.5)' : 'rgba(30,106,200,0.2)'}` }}>
@@ -341,10 +344,11 @@ export default function CalculadoraPage() {
   return (
     <main className="min-h-screen bg-gray-50">
 
-      {/* HEADER — navy con logo */}
+      {/* HEADER */}
       <div className="bg-brand-navy text-white px-4 pt-10 pb-3 flex items-center gap-3">
         <img src="/logo.jpg" alt="La Cooperativa Metalúrgica Argentina"
-          className="rounded-xl object-cover flex-shrink-0"
+          className="rounded-xl object-cover flex-shrink-0 cursor-pointer"
+          onClick={() => router.push('/')}
           style={{ width: 44, height: 44, border: '1.5px solid rgba(74,123,181,0.4)' }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <p className="font-bold text-sm" style={{ margin: 0 }}>La Metalúrgica</p>
@@ -367,7 +371,7 @@ export default function CalculadoraPage() {
         )}
       </div>
 
-      {/* BARRA PROGRESO — blanca */}
+      {/* BARRA PROGRESO */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-1 text-xs overflow-x-auto">
         {PASOS.map((p, i) => (
           <div key={p.n} className="flex items-center gap-1">
@@ -596,15 +600,15 @@ export default function CalculadoraPage() {
             <button onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${generarMensajeWA()}`, '_blank')}
               className="w-full rounded-xl py-4 font-bold text-base flex items-center justify-center gap-2 mb-3 text-white"
               style={{ background: '#25D366' }}>
-              📲 Enviar pedido por WhatsApp
+              📱 Enviar pedido por WhatsApp
             </button>
             <button onClick={() => { setPaso(1); setProyectoSeleccionado(null); setMaterialSeleccionado(null); setAcabadoSeleccionado(null); setCalibreSeleccionado(null) }}
               className="w-full py-3 text-sm font-medium rounded-xl mb-4 border-2 border-gray-200 text-gray-600 bg-white">
               Hacer otro pedido
             </button>
-            {/* Branding footer */}
             <div className="px-4 py-3 rounded-2xl flex items-center gap-3 bg-white border border-gray-200">
-              <img src="/logo.jpg" alt="Logo" className="rounded-xl object-cover flex-shrink-0"
+              <img src="/logo.jpg" alt="Logo" className="rounded-xl object-cover flex-shrink-0 cursor-pointer"
+                onClick={() => router.push('/')}
                 style={{ width: 40, height: 40, border: '1.5px solid #E5E7EB' }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="flex items-center gap-2">
