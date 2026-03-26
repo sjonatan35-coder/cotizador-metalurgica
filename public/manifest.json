@@ -1,0 +1,42 @@
+{
+  "name": "La Cooperativa Metalúrgica Argentina",
+  "short_name": "La Metalúrgica",
+  "description": "Calculá chapas BWG al instante. Presupuestos gratis con PDF.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1F3A",
+  "theme_color": "#0B1F3A",
+  "orientation": "portrait",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Calculadora",
+      "short_name": "Calcular",
+      "description": "Calculá chapas BWG",
+      "url": "/calculadora",
+      "icons": [{ "src": "/logo.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Presupuestos",
+      "short_name": "Presupuesto",
+      "description": "Generá un presupuesto",
+      "url": "/presupuestos/nuevo",
+      "icons": [{ "src": "/logo.jpg", "sizes": "192x192" }]
+    }
+  ]
+}
