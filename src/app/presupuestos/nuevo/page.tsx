@@ -40,11 +40,6 @@ const CALIBRES = [
   'c22','c24','c25','c26','c27','c28','c30','c32','c34'
 ]
 
-function generarNumero() {
-  const n = Math.floor(Math.random() * 9000) + 1000
-  return `PRES-${n}`
-}
-
 function buildDescripcion(proyecto: string, material: string, calibre: string): string {
   const label = PROYECTOS.find(p => p.id === proyecto)?.label ?? proyecto
   const parts = [label]
@@ -65,7 +60,7 @@ function NuevoPresupuestoContent() {
   const [mostrarPDF, setMostrarPDF] = useState(false)
   const [logoBase64, setLogoBase64] = useState<string | null>(null)
 
-  const [numero] = useState(generarNumero())
+  const [numero, setNumero] = useState('PRES-0000')
   const [clienteNombre, setClienteNombre] = useState('')
   const [clienteTelefono, setClienteTelefono] = useState('')
   const [validezDias, setValidezDias] = useState(7)
@@ -76,6 +71,9 @@ function NuevoPresupuestoContent() {
 
   useEffect(() => {
     const init = async () => {
+      const n = Math.floor(Math.random() * 9000) + 1000
+      setNumero(`PRES-${n}`)
+
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setLogueado(true)
@@ -83,6 +81,7 @@ function NuevoPresupuestoContent() {
           .from('profiles').select('tenant_id').eq('id', user.id).single()
         if (profile?.tenant_id) setTenantId(profile.tenant_id)
       }
+
       const nombre = searchParams.get('nombre')
       const telefono = searchParams.get('telefono')
       const producto = searchParams.get('producto')
@@ -92,6 +91,7 @@ function NuevoPresupuestoContent() {
         const prod = decodeURIComponent(producto)
         setItems([{ ...ITEM_VACIO, proyecto: prod, descripcion: buildDescripcion(prod, '', '') }])
       }
+
       try {
         const res = await fetch('/logo.jpg')
         const blob = await res.blob()
@@ -107,11 +107,9 @@ function NuevoPresupuestoContent() {
     setItems(prev => {
       const nuevos = [...prev]
       const current = { ...nuevos[index], ...changes }
-      // Recalcular descripción si cambia proyecto, material o calibre
       if (changes.proyecto !== undefined || changes.material !== undefined || changes.calibre !== undefined) {
         current.descripcion = buildDescripcion(current.proyecto, current.material, current.calibre)
       }
-      // Recalcular subtotal si cambia cantidad o precio
       if (changes.cantidad !== undefined || changes.precio_unitario !== undefined) {
         current.subtotal = current.cantidad * current.precio_unitario
       }
@@ -271,7 +269,7 @@ function NuevoPresupuestoContent() {
                 )}
               </div>
 
-              {/* Chips de proyecto */}
+              {/* Chips proyecto */}
               <div className="flex flex-wrap gap-1.5">
                 {PROYECTOS.map(p => (
                   <button key={p.id} onClick={() => updateItem(i, { proyecto: p.id })}
@@ -285,7 +283,7 @@ function NuevoPresupuestoContent() {
                 ))}
               </div>
 
-              {/* Material + Calibre — solo si hay proyecto */}
+              {/* Material + Calibre */}
               {item.proyecto && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
