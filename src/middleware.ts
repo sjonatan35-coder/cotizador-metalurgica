@@ -2,14 +2,22 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const RUTAS_PROTEGIDAS = ['/stock', '/dashboard', '/perfil', '/admin']
+// Rutas que requieren solo estar logueado
+const RUTAS_AUTH = ['/stock', '/dashboard', '/perfil', '/clientes']
+
+// Rutas que requieren rol ADMIN o SUPER_ADMIN
+const RUTAS_ADMIN = ['/admin', '/api/admin']
 
 type CookieToSet = { name: string; value: string; options?: Record<string, unknown> }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const esProtegida = RUTAS_PROTEGIDAS.some(r => pathname.startsWith(r))
-  if (!esProtegida) return NextResponse.next()
+
+  const esRutaAuth = RUTAS_AUTH.some(r => pathname.startsWith(r))
+  const esRutaAdmin = RUTAS_ADMIN.some(r => pathname.startsWith(r))
+
+  // Si no es ruta protegida, pasa directo
+  if (!esRutaAuth && !esRutaAdmin) return NextResponse.next()
 
   let response = NextResponse.next({
     request: { headers: request.headers },
@@ -38,12 +46,29 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Chequear sesión
   const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // Chequear rol para rutas admin
+  if (esRutaAdmin) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const rolPermitido = profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
+
+    if (!rolPermitido) {
+      // Logueado pero sin permiso → va al inicio, no al login
+      return NextResponse.redirect(new URL('/', request.url))
+    }
   }
 
   return response
