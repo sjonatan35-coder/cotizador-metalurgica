@@ -7,17 +7,50 @@ import { useToast } from '@/hooks/useToast'
 import Toast from '@/components/ui/Toast'
 
 type Item = {
+  proyecto: string
+  material: string
+  calibre: string
   descripcion: string
   cantidad: number
   precio_unitario: number
   subtotal: number
 }
 
-const ITEM_VACIO: Item = { descripcion: '', cantidad: 1, precio_unitario: 0, subtotal: 0 }
+const ITEM_VACIO: Item = {
+  proyecto: '', material: '', calibre: '', descripcion: '',
+  cantidad: 1, precio_unitario: 0, subtotal: 0
+}
+
+const PROYECTOS = [
+  { id: 'porton', label: 'Portón' },
+  { id: 'piso', label: 'Piso' },
+  { id: 'techo', label: 'Techo' },
+  { id: 'estructura', label: 'Estructura' },
+  { id: 'zingueria', label: 'Zinguería' },
+  { id: 'trailer', label: 'Trailer' },
+  { id: 'estampada', label: 'Chapa Estampada' },
+  { id: 'cnc', label: 'Corte CNC' },
+  { id: 'otros', label: 'Otros' },
+]
+
+const MATERIALES = ['LAF', 'LAC', 'Galvanizado']
+
+const CALIBRES = [
+  'c14','c15','c16','c17','c18','c19','c20',
+  'c22','c24','c25','c26','c27','c28','c30','c32','c34'
+]
 
 function generarNumero() {
   const n = Math.floor(Math.random() * 9000) + 1000
   return `PRES-${n}`
+}
+
+function buildDescripcion(proyecto: string, material: string, calibre: string): string {
+  const label = PROYECTOS.find(p => p.id === proyecto)?.label ?? proyecto
+  const parts = [label]
+  if (material) parts.push(material)
+  if (calibre) parts.push(calibre)
+  return parts.join(' — ')
 }
 
 function NuevoPresupuestoContent() {
@@ -30,6 +63,7 @@ function NuevoPresupuestoContent() {
   const [tenantId, setTenantId] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [mostrarPDF, setMostrarPDF] = useState(false)
+  const [logoBase64, setLogoBase64] = useState<string | null>(null)
 
   const [numero] = useState(generarNumero())
   const [clienteNombre, setClienteNombre] = useState('')
@@ -54,20 +88,34 @@ function NuevoPresupuestoContent() {
       const producto = searchParams.get('producto')
       if (nombre) setClienteNombre(decodeURIComponent(nombre))
       if (telefono) setClienteTelefono(decodeURIComponent(telefono))
-      if (producto) setItems([{ descripcion: decodeURIComponent(producto), cantidad: 1, precio_unitario: 0, subtotal: 0 }])
+      if (producto) {
+        const prod = decodeURIComponent(producto)
+        setItems([{ ...ITEM_VACIO, proyecto: prod, descripcion: buildDescripcion(prod, '', '') }])
+      }
+      try {
+        const res = await fetch('/logo.jpg')
+        const blob = await res.blob()
+        const reader = new FileReader()
+        reader.onloadend = () => setLogoBase64(reader.result as string)
+        reader.readAsDataURL(blob)
+      } catch {}
     }
     init()
   }, [])
 
-  function setItem(index: number, campo: keyof Item, valor: string | number) {
+  function updateItem(index: number, changes: Partial<Item>) {
     setItems(prev => {
       const nuevos = [...prev]
-      nuevos[index] = { ...nuevos[index], [campo]: valor }
-      if (campo === 'cantidad' || campo === 'precio_unitario') {
-        const cant = campo === 'cantidad' ? Number(valor) : nuevos[index].cantidad
-        const precio = campo === 'precio_unitario' ? Number(valor) : nuevos[index].precio_unitario
-        nuevos[index].subtotal = cant * precio
+      const current = { ...nuevos[index], ...changes }
+      // Recalcular descripción si cambia proyecto, material o calibre
+      if (changes.proyecto !== undefined || changes.material !== undefined || changes.calibre !== undefined) {
+        current.descripcion = buildDescripcion(current.proyecto, current.material, current.calibre)
       }
+      // Recalcular subtotal si cambia cantidad o precio
+      if (changes.cantidad !== undefined || changes.precio_unitario !== undefined) {
+        current.subtotal = current.cantidad * current.precio_unitario
+      }
+      nuevos[index] = current
       return nuevos
     })
   }
@@ -89,12 +137,20 @@ function NuevoPresupuestoContent() {
     setGuardando(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
+      const itemsLimpios = items
+        .filter(i => i.descripcion.trim())
+        .map(i => ({
+          descripcion: i.descripcion,
+          cantidad: i.cantidad,
+          precio_unitario: i.precio_unitario,
+          subtotal: i.subtotal,
+        }))
       const payload: Record<string, unknown> = {
         numero_presupuesto: numero,
         cliente_nombre: clienteNombre.trim(),
         cliente_telefono: clienteTelefono.trim() || null,
         cliente_id: clienteId || null,
-        items: items.filter(i => i.descripcion.trim()),
+        items: itemsLimpios,
         total,
         estado,
         validez_dias: validezDias,
@@ -138,8 +194,8 @@ function NuevoPresupuestoContent() {
     setMostrarPDF(true)
     setTimeout(() => {
       window.print()
-      setMostrarPDF(false)
-    }, 300)
+      setTimeout(() => setMostrarPDF(false), 500)
+    }, 400)
   }
 
   const fechaHoy = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -153,7 +209,7 @@ function NuevoPresupuestoContent() {
         @media print {
           body * { visibility: hidden !important; }
           #pdf-content, #pdf-content * { visibility: visible !important; }
-          #pdf-content { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; }
+          #pdf-content { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; background: white !important; }
         }
       `}</style>
 
@@ -173,7 +229,7 @@ function NuevoPresupuestoContent() {
 
       <div className="px-4 pt-4 flex flex-col gap-4 max-w-lg mx-auto">
 
-        {/* Datos del cliente */}
+        {/* Cliente */}
         <section className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Cliente</p>
           <div>
@@ -205,6 +261,7 @@ function NuevoPresupuestoContent() {
         {/* Ítems */}
         <section className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ítems</p>
+
           {items.map((item, i) => (
             <div key={i} className="bg-white border-2 border-slate-200 rounded-xl p-3 flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -213,21 +270,65 @@ function NuevoPresupuestoContent() {
                   <button onClick={() => eliminarItem(i)} className="text-xs text-red-400">Eliminar</button>
                 )}
               </div>
+
+              {/* Chips de proyecto */}
+              <div className="flex flex-wrap gap-1.5">
+                {PROYECTOS.map(p => (
+                  <button key={p.id} onClick={() => updateItem(i, { proyecto: p.id })}
+                    className={`px-2.5 py-1 rounded-full text-xs border-2 transition-all ${
+                      item.proyecto === p.id
+                        ? 'bg-[#1E6AC8] border-[#1E6AC8] text-white'
+                        : 'bg-white border-slate-300 text-slate-600'
+                    }`}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Material + Calibre — solo si hay proyecto */}
+              {item.proyecto && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Material</label>
+                    <select value={item.material} onChange={e => updateItem(i, { material: e.target.value })}
+                      className="w-full border-2 border-slate-300 rounded-lg px-2 py-2 text-sm bg-white focus:outline-none focus:border-blue-400">
+                      <option value="">-- elegir --</option>
+                      {MATERIALES.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Calibre BWG</label>
+                    <select value={item.calibre} onChange={e => updateItem(i, { calibre: e.target.value })}
+                      className="w-full border-2 border-slate-300 rounded-lg px-2 py-2 text-sm bg-white focus:outline-none focus:border-blue-400">
+                      <option value="">-- elegir --</option>
+                      {CALIBRES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Descripción editable */}
               <input type="text" value={item.descripcion}
-                onChange={e => setItem(i, 'descripcion', e.target.value)}
-                placeholder="Ej: Chapa LAF calibre 16 — 1000×2000mm"
+                onChange={e => setItems(prev => {
+                  const n = [...prev]
+                  n[i] = { ...n[i], descripcion: e.target.value }
+                  return n
+                })}
+                placeholder="Descripción del ítem..."
                 className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400" />
+
+              {/* Cantidad, precio, subtotal */}
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">Cantidad</label>
                   <input type="number" min={1} value={item.cantidad}
-                    onChange={e => setItem(i, 'cantidad', Number(e.target.value))}
+                    onChange={e => updateItem(i, { cantidad: Number(e.target.value) })}
                     className="w-full border-2 border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400" />
                 </div>
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">Precio unit.</label>
                   <input type="number" min={0} value={item.precio_unitario || ''}
-                    onChange={e => setItem(i, 'precio_unitario', Number(e.target.value))}
+                    onChange={e => updateItem(i, { precio_unitario: Number(e.target.value) })}
                     placeholder="$0"
                     className="w-full border-2 border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400" />
                 </div>
@@ -240,6 +341,7 @@ function NuevoPresupuestoContent() {
               </div>
             </div>
           ))}
+
           <button onClick={agregarItem}
             className="w-full py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm text-slate-400 hover:border-blue-400 hover:text-blue-400 transition-colors">
             + Agregar ítem
@@ -297,9 +399,10 @@ function NuevoPresupuestoContent() {
         <div id="pdf-content" style={{ position: 'fixed', top: 0, left: 0, width: '100%', background: '#fff', padding: 32, zIndex: 9999, fontFamily: 'Arial, sans-serif' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, paddingBottom: 16, borderBottom: '2px solid #0B1F3A' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 48, height: 48, background: '#0B1F3A', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ width: 28, height: 28, background: '#2DD4BF', borderRadius: 4 }}></div>
-              </div>
+              {logoBase64
+                ? <img src={logoBase64} alt="Logo" style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover' }} />
+                : <div style={{ width: 52, height: 52, background: '#0B1F3A', borderRadius: 8 }} />
+              }
               <div>
                 <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#0B1F3A' }}>La Cooperativa Metalúrgica Argentina</p>
                 <p style={{ margin: 0, fontSize: 11, color: '#4A7BB5' }}>Villa Lugano, CABA · WhatsApp: 11 5939-6358</p>
