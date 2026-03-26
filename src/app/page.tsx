@@ -8,6 +8,7 @@ export default function Home() {
   const supabase = createClient()
   const router = useRouter()
   const [esAdmin, setEsAdmin] = useState(false)
+  const [utmSource, setUtmSource] = useState<string | null>(null)
 
   useEffect(() => {
     const checkRol = async () => {
@@ -21,6 +22,13 @@ export default function Home() {
       if (profile?.rol === 'ADMIN') setEsAdmin(true)
     }
     checkRol()
+
+    // Leer UTM capturado
+    const utmRaw = localStorage.getItem('metalurgica_utm')
+    if (utmRaw) {
+      const utm = JSON.parse(utmRaw)
+      if (utm?.source) setUtmSource(utm.source)
+    }
   }, [])
 
   return (
@@ -32,16 +40,32 @@ export default function Home() {
           <div className="flex items-center justify-between px-5 pt-12 pb-4">
             <div className="flex items-center gap-3">
               <img src="/logo.jpg" alt="Logo" className="h-9 w-9 rounded-lg object-cover" />
-              <span className="text-white font-bold text-base" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>La Metalúrgica</span>
+              <div>
+                <span className="text-white font-bold text-base block" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>La Metalúrgica</span>
+                <span className="text-xs" style={{ color: 'rgba(247,250,255,0.5)' }}>Villa Lugano, CABA 🇦🇷</span>
+              </div>
             </div>
             <a href="/login" className="text-xs font-medium px-4 py-2 rounded-full text-white" style={{ background: '#1E6AC8' }}>Ingresar</a>
           </div>
 
           {/* Bienvenida */}
-          <div className="px-5 pb-5">
+          <div className="px-5 pb-3">
             <p className="text-xs mb-1" style={{ color: 'rgba(247,250,255,0.7)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Bienvenido</p>
             <span className="text-white font-bold text-lg leading-tight" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>La Cooperativa Metalúrgica Argentina</span>
           </div>
+
+          {/* Banner UTM — aparece solo si llegó de campaña */}
+          {utmSource && (
+            <div className="mx-5 mb-3 px-4 py-2 rounded-xl flex items-center gap-2"
+              style={{ background: 'rgba(45,212,191,0.1)', border: '0.5px solid rgba(45,212,191,0.3)' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span className="text-xs" style={{ color: 'rgba(247,250,255,0.7)' }}>
+                Llegaste desde <strong style={{ color: '#2DD4BF' }}>{utmSource}</strong> — 3 cálculos gratis
+              </span>
+            </div>
+          )}
 
           {/* Grilla 2x2 */}
           <div className="px-4 grid grid-cols-2 gap-3 mb-3">
