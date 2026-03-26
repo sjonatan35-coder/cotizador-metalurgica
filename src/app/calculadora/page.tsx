@@ -22,7 +22,7 @@ const WA_NUMBER = '5491159396358'
 const STORAGE_KEY = 'metalurgica_usos_calculadora'
 const MAX_USOS_GRATIS = 3
 
-// ── HELPER EVENTOS — una sola función para todos los eventos ──
+// ── HELPER EVENTOS ──
 function registrarEvento(evento: string, datos: Record<string, unknown> = {}) {
   const supabase = createClient()
   let utm: { source?: string } | null = null
@@ -304,7 +304,18 @@ export default function CalculadoraPage() {
     setPaso(4)
   }
 
+  // ── EVENTO 3: resultado visto ──
   function irAlResultado() {
+    registrarEvento('calculadora_resultado_visto', {
+      proyecto_id: proyectoSeleccionado?.id ?? null,
+      material: materialSeleccionado ?? null,
+      calibre: calibreSeleccionado?.calibre ?? null,
+      metadata: {
+        modo_calculo: modoCalculo,
+        chapas: calcularChapas(),
+        sesion: sesionActiva,
+      },
+    })
     if (!sesionActiva) {
       const nuevos = usosGratis + 1
       localStorage.setItem(STORAGE_KEY, String(nuevos))
