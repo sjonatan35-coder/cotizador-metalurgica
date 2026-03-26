@@ -89,7 +89,12 @@ export default function ClientesPage() {
       <div className="bg-[#0B1F3A] px-4 pt-4 pb-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="La Metalurgica" className="h-9 w-9 rounded-lg object-cover" />
+            <img
+              src="/logo.jpg"
+              alt="La Metalurgica"
+              className="h-9 w-9 rounded-lg object-cover cursor-pointer"
+              onClick={() => router.push('/')}
+            />
             <div>
               <h1 className="text-white font-medium text-base leading-tight">Clientes</h1>
               <p className="text-[#4A7BB5] text-xs">La Metalurgica</p>

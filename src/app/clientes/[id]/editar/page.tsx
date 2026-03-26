@@ -8,31 +8,11 @@ import Toast from '@/components/ui/Toast'
 import { ArrowLeft, Save } from 'lucide-react'
 
 const FUENTES = [
-  {
-    label: 'Redes pagas',
-    color: '#1E6AC8',
-    items: ['Instagram Ads', 'Facebook Ads', 'TikTok Ads', 'Google Ads', 'YouTube Ads'],
-  },
-  {
-    label: 'Orgánico',
-    color: '#0F6E56',
-    items: ['Instagram', 'Facebook', 'Google SEO', 'Google Maps', 'TikTok orgánico'],
-  },
-  {
-    label: 'Directo',
-    color: '#4A7BB5',
-    items: ['WhatsApp directo', 'Llamada', 'Visita al local', 'Referido / boca en boca'],
-  },
-  {
-    label: 'Sistema',
-    color: '#2DD4BF',
-    items: ['Calculadora app', 'Presupuesto app', 'Chat IA'],
-  },
-  {
-    label: 'Otros',
-    color: '#888780',
-    items: ['MercadoLibre', 'OLX', 'Email marketing', 'Otra'],
-  },
+  { label: 'Redes pagas', color: '#1E6AC8', items: ['Instagram Ads', 'Facebook Ads', 'TikTok Ads', 'Google Ads', 'YouTube Ads'] },
+  { label: 'Orgánico', color: '#0F6E56', items: ['Instagram', 'Facebook', 'Google SEO', 'Google Maps', 'TikTok orgánico'] },
+  { label: 'Directo', color: '#4A7BB5', items: ['WhatsApp directo', 'Llamada', 'Visita al local', 'Referido / boca en boca'] },
+  { label: 'Sistema', color: '#2DD4BF', items: ['Calculadora app', 'Presupuesto app', 'Chat IA'] },
+  { label: 'Otros', color: '#888780', items: ['MercadoLibre', 'OLX', 'Email marketing', 'Otra'] },
 ]
 
 const CANALES_PAGOS = ['Instagram Ads', 'Facebook Ads', 'TikTok Ads', 'Google Ads', 'YouTube Ads']
@@ -68,49 +48,23 @@ export default function EditarClientePage() {
   const [loading, setLoading] = useState(false)
   const [cargando, setCargando] = useState(true)
   const [form, setForm] = useState({
-    nombre: '',
-    empresa: '',
-    telefono: '',
-    email: '',
-    zona: '',
-    tipo_cliente: 'herrero',
-    fuente: '',
-    campana_origen: '',
-    estado_lead: 'nuevo',
-    urgencia: 'media',
-    lead_score: 3,
-    primer_producto_interes: '',
-    motivo_perdida: '',
-    proxima_accion_texto: '',
-    proxima_accion_fecha: '',
-    notas: '',
+    nombre: '', empresa: '', telefono: '', email: '', zona: '',
+    tipo_cliente: 'herrero', fuente: '', campana_origen: '',
+    estado_lead: 'nuevo', urgencia: 'media', lead_score: 3,
+    primer_producto_interes: '', motivo_perdida: '',
+    proxima_accion_texto: '', proxima_accion_fecha: '', notas: '',
   })
 
   useEffect(() => {
     const cargar = async () => {
-      const { data, error } = await supabase
-        .from('clientes')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (error || !data) {
-        toast.error('No se pudo cargar el cliente')
-        setCargando(false)
-        return
-      }
-
+      const { data, error } = await supabase.from('clientes').select('*').eq('id', id).single()
+      if (error || !data) { toast.error('No se pudo cargar el cliente'); setCargando(false); return }
       setForm({
-        nombre: data.nombre || '',
-        empresa: data.empresa || '',
-        telefono: data.telefono || '',
-        email: data.email || '',
-        zona: data.zona || '',
-        tipo_cliente: data.tipo_cliente || 'herrero',
-        fuente: data.fuente || '',
-        campana_origen: data.campana_origen || '',
-        estado_lead: data.estado_lead || 'nuevo',
-        urgencia: data.urgencia || 'media',
+        nombre: data.nombre || '', empresa: data.empresa || '',
+        telefono: data.telefono || '', email: data.email || '',
+        zona: data.zona || '', tipo_cliente: data.tipo_cliente || 'herrero',
+        fuente: data.fuente || '', campana_origen: data.campana_origen || '',
+        estado_lead: data.estado_lead || 'nuevo', urgencia: data.urgencia || 'media',
         lead_score: data.lead_score || 3,
         primer_producto_interes: data.primer_producto_interes || '',
         motivo_perdida: data.motivo_perdida || '',
@@ -132,38 +86,27 @@ export default function EditarClientePage() {
   const guardar = async () => {
     if (!form.nombre.trim()) { toast.error('El nombre es obligatorio'); return }
     if (!form.telefono.trim()) { toast.error('El teléfono es obligatorio'); return }
-
     setLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { toast.error('No estás autenticado'); setLoading(false); return }
-
-      const { error } = await supabase
-        .from('clientes')
-        .update({
-          updated_by: user.id,
-          nombre: form.nombre.trim(),
-          empresa: form.empresa.trim() || null,
-          telefono: form.telefono.trim(),
-          email: form.email.trim() || null,
-          zona: form.zona.trim() || null,
-          tipo_cliente: form.tipo_cliente,
-          fuente: form.fuente || null,
-          campana_origen: esCanalPago && form.campana_origen ? form.campana_origen.trim() : null,
-          estado_lead: form.estado_lead,
-          urgencia: form.urgencia,
-          lead_score: form.lead_score,
-          primer_producto_interes: form.primer_producto_interes || null,
-          motivo_perdida: esPerdido && form.motivo_perdida ? form.motivo_perdida : null,
-          proxima_accion_texto: form.proxima_accion_texto.trim() || null,
-          proxima_accion_fecha: form.proxima_accion_fecha || null,
-          notas: form.notas.trim() || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-
+      const { error } = await supabase.from('clientes').update({
+        updated_by: user.id,
+        nombre: form.nombre.trim(), empresa: form.empresa.trim() || null,
+        telefono: form.telefono.trim(), email: form.email.trim() || null,
+        zona: form.zona.trim() || null, tipo_cliente: form.tipo_cliente,
+        fuente: form.fuente || null,
+        campana_origen: esCanalPago && form.campana_origen ? form.campana_origen.trim() : null,
+        estado_lead: form.estado_lead, urgencia: form.urgencia,
+        lead_score: form.lead_score,
+        primer_producto_interes: form.primer_producto_interes || null,
+        motivo_perdida: esPerdido && form.motivo_perdida ? form.motivo_perdida : null,
+        proxima_accion_texto: form.proxima_accion_texto.trim() || null,
+        proxima_accion_fecha: form.proxima_accion_fecha || null,
+        notas: form.notas.trim() || null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', id)
       if (error) throw error
-
       toast.success('Cliente actualizado ✓')
       setTimeout(() => router.push(`/clientes/${id}`), 800)
     } catch (err) {
@@ -174,21 +117,18 @@ export default function EditarClientePage() {
     }
   }
 
-  if (cargando) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-slate-400 text-sm">Cargando cliente...</p>
-      </div>
-    )
-  }
+  if (cargando) return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <p className="text-slate-400 text-sm">Cargando cliente...</p>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-white">
       <Toast toasts={toasts} onRemove={removeToast} />
 
-      {/* Header */}
       <div className="bg-brand-navy text-white p-4 flex items-center gap-3 sticky top-0 z-10">
-        <img src="/logo.jpg" alt="La Metalúrgica" className="h-9 w-9 rounded-lg object-cover" />
+        <img src="/logo.jpg" alt="La Metalúrgica" className="h-9 w-9 rounded-lg object-cover cursor-pointer" onClick={() => router.push('/')} />
         <div className="flex-1">
           <h1 className="text-sm font-bold leading-tight">Editar cliente</h1>
           <p className="text-xs text-blue-300">CRM — La Metalúrgica</p>
@@ -200,7 +140,6 @@ export default function EditarClientePage() {
 
       <div className="p-4 flex flex-col gap-5 max-w-lg mx-auto pb-32">
 
-        {/* Datos de contacto */}
         <section className="bg-slate-50 rounded-xl p-4 border-2 border-slate-200 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Datos de contacto</p>
           <div>
@@ -232,7 +171,6 @@ export default function EditarClientePage() {
           </div>
         </section>
 
-        {/* Perfil del lead */}
         <section className="bg-slate-50 rounded-xl p-4 border-2 border-slate-200 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Perfil del lead</p>
           <div className="grid grid-cols-2 gap-3">
@@ -273,13 +211,9 @@ export default function EditarClientePage() {
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Score del lead</label>
               <div className="flex gap-1 mt-1">
-                {[1, 2, 3, 4, 5].map(n => (
+                {[1,2,3,4,5].map(n => (
                   <button key={n} onClick={() => set('lead_score', n)}
-                    className={`w-9 h-9 rounded-full text-sm font-medium border-2 transition-all ${
-                      n <= form.lead_score
-                        ? 'bg-teal-400 border-teal-500 text-teal-900'
-                        : 'bg-white border-slate-300 text-slate-400'
-                    }`}>
+                    className={`w-9 h-9 rounded-full text-sm font-medium border-2 transition-all ${n <= form.lead_score ? 'bg-teal-400 border-teal-500 text-teal-900' : 'bg-white border-slate-300 text-slate-400'}`}>
                     {n}
                   </button>
                 ))}
@@ -292,11 +226,7 @@ export default function EditarClientePage() {
               <div className="flex flex-wrap gap-2">
                 {MOTIVOS_PERDIDA.map(m => (
                   <button key={m.id} onClick={() => set('motivo_perdida', m.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${
-                      form.motivo_perdida === m.id
-                        ? 'bg-red-500 border-red-600 text-white'
-                        : 'bg-white border-slate-300 text-slate-600'
-                    }`}>
+                    className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${form.motivo_perdida === m.id ? 'bg-red-500 border-red-600 text-white' : 'bg-white border-slate-300 text-slate-600'}`}>
                     {m.label}
                   </button>
                 ))}
@@ -305,7 +235,6 @@ export default function EditarClientePage() {
           )}
         </section>
 
-        {/* Fuente */}
         <section className="bg-slate-50 rounded-xl p-4 border-2 border-slate-200 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">¿Cómo llegó?</p>
           {FUENTES.map(grupo => (
@@ -315,9 +244,7 @@ export default function EditarClientePage() {
                 {grupo.items.map(item => (
                   <button key={item} onClick={() => set('fuente', item)}
                     style={form.fuente === item ? { background: grupo.color, borderColor: grupo.color, color: '#fff' } : {}}
-                    className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${
-                      form.fuente === item ? '' : 'bg-white border-slate-300 text-slate-600'
-                    }`}>
+                    className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${form.fuente === item ? '' : 'bg-white border-slate-300 text-slate-600'}`}>
                     {item}
                   </button>
                 ))}
@@ -333,24 +260,18 @@ export default function EditarClientePage() {
           )}
         </section>
 
-        {/* Producto de interés */}
         <section className="bg-slate-50 rounded-xl p-4 border-2 border-slate-200 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Producto de interés</p>
           <div className="flex flex-wrap gap-2">
             {PROYECTOS.map(p => (
               <button key={p.id} onClick={() => set('primer_producto_interes', form.primer_producto_interes === p.id ? '' : p.id)}
-                className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${
-                  form.primer_producto_interes === p.id
-                    ? 'bg-brand-accent border-blue-600 text-white'
-                    : 'bg-white border-slate-300 text-slate-600'
-                }`}>
+                className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${form.primer_producto_interes === p.id ? 'bg-brand-accent border-blue-600 text-white' : 'bg-white border-slate-300 text-slate-600'}`}>
                 {p.label}
               </button>
             ))}
           </div>
         </section>
 
-        {/* Próxima acción */}
         <section className="bg-slate-50 rounded-xl p-4 border-2 border-slate-200 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Próxima acción</p>
           <div>
@@ -365,7 +286,6 @@ export default function EditarClientePage() {
           </div>
         </section>
 
-        {/* Notas */}
         <section className="bg-slate-50 rounded-xl p-4 border-2 border-slate-200 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Notas</p>
           <textarea value={form.notas} onChange={e => set('notas', e.target.value)} rows={3}
@@ -374,7 +294,6 @@ export default function EditarClientePage() {
 
       </div>
 
-      {/* Botón fijo abajo */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t-2 border-slate-200">
         <button onClick={guardar} disabled={loading}
           className="w-full bg-brand-accent text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 max-w-lg mx-auto">
