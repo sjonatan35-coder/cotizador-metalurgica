@@ -89,14 +89,14 @@ function NuevoPresupuestoContent() {
       const nombre        = searchParams.get('nombre')
       const telefono      = searchParams.get('telefono')
 
-      if (nombre)    setClienteNombre(decodeURIComponent(nombre))
-      if (telefono)  setClienteTelefono(decodeURIComponent(telefono))
+      if (nombre)   setClienteNombre(decodeURIComponent(nombre))
+      if (telefono) setClienteTelefono(decodeURIComponent(telefono))
 
       if (proyectoParam) {
-        const proyecto  = decodeURIComponent(proyectoParam)
-        const material  = materialParam ? decodeURIComponent(materialParam) : ''
-        const calibre   = calibreParam  ? decodeURIComponent(calibreParam)  : ''
-        const cantidad  = cantidadParam ? parseInt(cantidadParam) : 1
+        const proyecto = decodeURIComponent(proyectoParam)
+        const material = materialParam ? decodeURIComponent(materialParam) : ''
+        const calibre  = calibreParam  ? decodeURIComponent(calibreParam)  : ''
+        const cantidad = cantidadParam ? parseInt(cantidadParam) : 1
         setItems([{
           ...ITEM_VACIO,
           proyecto,
@@ -227,7 +227,6 @@ function NuevoPresupuestoContent() {
         }
       `}</style>
 
-      {/* Header */}
       <div className="bg-[#0B1F3A] px-4 pt-4 pb-4 flex items-center gap-3 sticky top-0 z-10">
         <button onClick={() => router.push('/presupuestos')} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -243,7 +242,6 @@ function NuevoPresupuestoContent() {
 
       <div className="px-4 pt-4 flex flex-col gap-4 max-w-lg mx-auto">
 
-        {/* Cliente */}
         <section className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Cliente</p>
           <div>
@@ -275,7 +273,6 @@ function NuevoPresupuestoContent() {
           </div>
         </section>
 
-        {/* Ítems */}
         <section className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4 flex flex-col gap-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ítems</p>
 
@@ -288,7 +285,6 @@ function NuevoPresupuestoContent() {
                 )}
               </div>
 
-              {/* Chips proyecto */}
               <div className="flex flex-wrap gap-1.5">
                 {PROYECTOS.map(p => (
                   <button key={p.id} onClick={() => updateItem(i, { proyecto: p.id })}
@@ -302,7 +298,6 @@ function NuevoPresupuestoContent() {
                 ))}
               </div>
 
-              {/* Material + Calibre */}
               {item.proyecto && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -324,7 +319,6 @@ function NuevoPresupuestoContent() {
                 </div>
               )}
 
-              {/* Descripción editable */}
               <input type="text" value={item.descripcion}
                 onChange={e => setItems(prev => {
                   const n = [...prev]
@@ -334,18 +328,23 @@ function NuevoPresupuestoContent() {
                 placeholder="Descripción del ítem..."
                 className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400" />
 
-              {/* Cantidad, precio, subtotal */}
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">Cantidad</label>
-                  <input type="number" min={1} value={item.cantidad}
-                    onChange={e => updateItem(i, { cantidad: Number(e.target.value) })}
+                  <input
+                    type="number" min={1}
+                    value={item.cantidad || ''}
+                    onChange={e => updateItem(i, { cantidad: e.target.value === '' ? 1 : Number(e.target.value) })}
+                    onFocus={e => e.target.select()}
                     className="w-full border-2 border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400" />
                 </div>
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">Precio unit.</label>
-                  <input type="number" min={0} value={item.precio_unitario || ''}
+                  <input
+                    type="number" min={0}
+                    value={item.precio_unitario || ''}
                     onChange={e => updateItem(i, { precio_unitario: Number(e.target.value) })}
+                    onFocus={e => e.target.select()}
                     placeholder="$0"
                     className="w-full border-2 border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-400" />
                 </div>
@@ -365,20 +364,17 @@ function NuevoPresupuestoContent() {
           </button>
         </section>
 
-        {/* Total */}
         <div className="bg-[#0B1F3A] rounded-xl px-4 py-3 flex items-center justify-between">
           <span className="text-[#4A7BB5] text-sm">Total estimado</span>
           <span className="text-[#2DD4BF] text-xl font-semibold">${total.toLocaleString('es-AR')}</span>
         </div>
 
-        {/* Leyenda validez */}
         <div className="bg-amber-50 border-2 border-amber-200 rounded-xl px-4 py-3">
           <p className="text-xs text-amber-700 font-medium">
             ⚠️ Válido por {validezDias} día{validezDias !== 1 ? 's' : ''}. El valor se confirma desde el momento del pago.
           </p>
         </div>
 
-        {/* Notas */}
         <section className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">Notas</label>
           <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={2}
@@ -386,7 +382,6 @@ function NuevoPresupuestoContent() {
             className="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-blue-400 resize-none" />
         </section>
 
-        {/* Acciones */}
         <div className="flex flex-col gap-3 pb-8">
           <button onClick={imprimirPDF}
             className="w-full py-3.5 rounded-xl bg-[#1E6AC8] text-white font-semibold flex items-center justify-center gap-2">
@@ -418,7 +413,6 @@ function NuevoPresupuestoContent() {
         </div>
       </div>
 
-      {/* PDF para imprimir */}
       {mostrarPDF && (
         <div id="pdf-content" style={{ position: 'fixed', top: 0, left: 0, width: '100%', background: '#fff', padding: 32, zIndex: 9999, fontFamily: 'Arial, sans-serif' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, paddingBottom: 16, borderBottom: '2px solid #0B1F3A' }}>
