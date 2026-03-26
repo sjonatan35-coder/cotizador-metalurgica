@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Check, X, Search, Shield, ChevronDown, UserPlus, Mail } from 'lucide-react'
+import { Check, X, Search, Shield, ChevronDown, UserPlus, Mail } from 'lucide-react'
 
 type Usuario = {
   id: string
@@ -96,7 +96,6 @@ export default function AdminUsuarios() {
 
   const s = {
     page: { minHeight: '100vh', background: '#0B1F3A', fontFamily: "'DM Sans', sans-serif" } as React.CSSProperties,
-    header: { background: '#0B1F3A', borderBottom: '1px solid rgba(247,250,255,0.08)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 } as React.CSSProperties,
     body: { background: '#f7faff', minHeight: 'calc(100vh - 56px)', padding: '16px' } as React.CSSProperties,
     input: { width: '100%', boxSizing: 'border-box' as const, padding: '10px 12px', fontSize: 14, border: '1px solid #d1dce8', borderRadius: 8, background: '#fff', color: '#0B1F3A', outline: 'none' } as React.CSSProperties,
     card: { background: '#fff', borderRadius: 10, border: '1px solid #e2eaf3', padding: '14px', marginBottom: 10 } as React.CSSProperties,
@@ -147,24 +146,25 @@ export default function AdminUsuarios() {
         </div>
       )}
 
-      {/* Header */}
-      <div style={s.header}>
-        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', color: '#2DD4BF', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, padding: 0 }}>
-          <ArrowLeft size={16} />
+      {/* Header — flecha ← vuelve a /admin/productos */}
+      <div style={{ background: '#0B1F3A', borderBottom: '1px solid rgba(247,250,255,0.08)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button onClick={() => router.push('/admin/productos')}
+          style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="16" height="16" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         </button>
         <img src="/logo.jpg" alt="La Metalúrgica" onClick={() => router.push('/admin/productos')}
-          style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', cursor: 'pointer', border: '1.5px solid rgba(74,123,181,0.4)' }} />
+          style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', cursor: 'pointer', border: '1.5px solid rgba(74,123,181,0.4)', flexShrink: 0 }} />
         <div style={{ flex: 1, textAlign: 'center' }}>
           <div style={{ color: '#F7FAFF', fontSize: 15, fontWeight: 600 }}>Usuarios</div>
           <div style={{ color: '#2DD4BF', fontSize: 11 }}>Panel Admin</div>
         </div>
-        <button onClick={() => setModalInvitar(true)} style={{ background: '#1E6AC8', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '6px 12px', borderRadius: 8, fontWeight: 600 }}>
+        <button onClick={() => setModalInvitar(true)}
+          style={{ background: '#1E6AC8', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '6px 12px', borderRadius: 8, fontWeight: 600 }}>
           <UserPlus size={14} /> Invitar
         </button>
       </div>
 
       <div style={s.body}>
-
         <div style={{ position: 'relative', marginBottom: 14 }}>
           <Search size={16} color="#4A7BB5" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
           <input style={{ ...s.input, paddingLeft: 36 }} placeholder="Buscar por nombre, rol o teléfono..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
@@ -178,7 +178,6 @@ export default function AdminUsuarios() {
           const rc = rolColor[u.rol] || rolColor['sin rol']
           const inicial = u.nombre?.charAt(0).toUpperCase() || '?'
           const pendiente = u.invitacion_pendiente === true
-
           return (
             <div key={u.id} style={{ ...s.card, opacity: pendiente ? 0.8 : 1 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>

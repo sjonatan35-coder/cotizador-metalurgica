@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/useToast'
 import Toast from '@/components/ui/Toast'
-import { ArrowLeft, Save } from 'lucide-react'
+import { Save } from 'lucide-react'
 
 const FUENTES = [
   { label: 'Redes pagas', color: '#1E6AC8', items: ['Instagram Ads', 'Facebook Ads', 'TikTok Ads', 'Google Ads', 'YouTube Ads'] },
@@ -127,15 +127,18 @@ export default function EditarClientePage() {
     <div className="min-h-screen bg-white">
       <Toast toasts={toasts} onRemove={removeToast} />
 
-      <div className="bg-brand-navy text-white p-4 flex items-center gap-3 sticky top-0 z-10">
-        <img src="/logo.jpg" alt="La Metalúrgica" className="h-9 w-9 rounded-lg object-cover cursor-pointer" onClick={() => router.push('/')} />
-        <div className="flex-1">
-          <h1 className="text-sm font-bold leading-tight">Editar cliente</h1>
-          <p className="text-xs text-blue-300">CRM — La Metalúrgica</p>
-        </div>
-        <button onClick={() => router.back()} className="flex items-center gap-1 text-xs text-blue-300 hover:text-white">
-          <ArrowLeft size={14} /> Volver
+      {/* Header — flecha ← vuelve al detalle del cliente */}
+      <div className="bg-[#0B1F3A] px-4 pt-4 pb-4 flex items-center gap-3 sticky top-0 z-10">
+        <button onClick={() => router.push(`/clientes/${id}`)} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         </button>
+        <button onClick={() => router.push('/')} className="flex-shrink-0">
+          <img src="/logo.jpg" alt="La Metalúrgica" className="h-8 w-8 rounded-lg object-cover" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-white font-medium text-base leading-tight">Editar cliente</h1>
+          <p className="text-[#4A7BB5] text-xs">CRM — La Metalúrgica</p>
+        </div>
       </div>
 
       <div className="p-4 flex flex-col gap-5 max-w-lg mx-auto pb-32">
@@ -265,7 +268,7 @@ export default function EditarClientePage() {
           <div className="flex flex-wrap gap-2">
             {PROYECTOS.map(p => (
               <button key={p.id} onClick={() => set('primer_producto_interes', form.primer_producto_interes === p.id ? '' : p.id)}
-                className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${form.primer_producto_interes === p.id ? 'bg-brand-accent border-blue-600 text-white' : 'bg-white border-slate-300 text-slate-600'}`}>
+                className={`px-3 py-1.5 rounded-full text-xs border-2 transition-all ${form.primer_producto_interes === p.id ? 'bg-[#1E6AC8] border-blue-600 text-white' : 'bg-white border-slate-300 text-slate-600'}`}>
                 {p.label}
               </button>
             ))}
@@ -296,7 +299,7 @@ export default function EditarClientePage() {
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t-2 border-slate-200">
         <button onClick={guardar} disabled={loading}
-          className="w-full bg-brand-accent text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 max-w-lg mx-auto">
+          className="w-full bg-[#1E6AC8] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 max-w-lg mx-auto">
           <Save size={18} />
           {loading ? 'Guardando...' : 'Guardar cambios'}
         </button>
