@@ -1,4 +1,5 @@
 'use client'
+import BtnPrimary from '@/components/BtnPrimary'
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'

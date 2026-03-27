@@ -1,4 +1,5 @@
 'use client'
+import BtnPrimary from '@/components/BtnPrimary'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -100,9 +101,9 @@ export default function ClientesPage() {
               <p className="text-[#4A7BB5] text-xs">La Metalurgica</p>
             </div>
           </div>
-          <button onClick={() => router.push('/clientes/nuevo')} className="bg-[#1E6AC8] text-white text-xs font-medium px-3 py-2 rounded-lg">
-            + Nuevo
-          </button>
+          <BtnPrimary onClick={() => router.push('/clientes/nuevo')} fullWidth={false}>+ Nuevo</BtnPrimary>
+
+
         </div>
         <input
           type="text"

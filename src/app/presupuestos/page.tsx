@@ -1,4 +1,5 @@
 'use client'
+import BtnPrimary from '@/components/BtnPrimary'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'

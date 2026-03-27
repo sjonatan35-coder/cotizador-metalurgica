@@ -1,4 +1,5 @@
 'use client'
+import BtnPrimary from '@/components/BtnPrimary'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -244,12 +245,7 @@ export default function RegistroPage() {
               </div>
             )}
 
-            <button type="submit" disabled={loading}
-              className="w-full rounded-xl font-semibold flex items-center justify-center gap-2 transition-opacity"
-              style={{ height: '48px', background: '#1E6AC8', color: '#F7FAFF', fontSize: '15px', opacity: loading ? 0.7 : 1 }}>
-              {loading && <Loader2 size={16} className="animate-spin" />}
-              {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
-            </button>
+            <BtnPrimary type="submit" loading={loading}>Crear cuenta gratis</BtnPrimary>
 
             <p className="text-center" style={{ color: 'rgba(247,250,255,0.3)', fontSize: '11px' }}>
               Sin tarjeta de crédito · Gratis para siempre
