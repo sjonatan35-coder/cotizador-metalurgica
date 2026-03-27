@@ -19,6 +19,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const WA_NUMBER = '5491159396358'
+const SESION_ID = typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
 const STORAGE_KEY = 'metalurgica_usos_calculadora'
 const MAX_USOS_GRATIS = 3
 
@@ -29,6 +30,8 @@ function registrarEvento(evento: string, datos: Record<string, unknown> = {}) {
   supabase.from('eventos_app').insert({
     evento,
     fuente: utm?.source ?? 'directo',
+    sesion_id: SESION_ID,
+    timestamp_cliente: new Date().toISOString(),
     ...datos,
   }).then(() => {})
 }
@@ -139,12 +142,22 @@ export default function CalculadoraPage() {
   const [supLargo,        setSupLargo]        = useState('')
   const [orientacion,     setOrientacion]     = useState<Orientacion>('vertical')
   const [modoCalculo,     setModoCalculo]     = useState<ModoCalculo>('superficie')
+  const cambiarModoCalculo = (modo: ModoCalculo) => {
+    registrarEvento('calculadora_modo_calculo', {
+      proyecto_id: proyectoSeleccionado?.id ?? null,
+      material: materialSeleccionado ?? null,
+      modo_anterior: modoCalculo,
+      modo_nuevo: modo,
+    })
+    setModoCalculo(modo)
+  }
   const [cantidadDirecta, setCantidadDirecta] = useState(1)
   const [toneladas,       setToneladas]       = useState('')
   const [usosGratis,      setUsosGratis]      = useState(0)
   const [bloqueado,       setBloqueado]       = useState(false)
   const [sesionActiva,    setSesionActiva]    = useState(false)
   const [tokensDisponibles, setTokensDisponibles] = useState<number | null>(null)
+  const [tiempoInicioPaso, setTiempoInicioPaso] = useState<number>(Date.now())
   const [cargando,        setCargando]        = useState(true)
   const [proyectoPopular, setProyectoPopular] = useState<string | null>(null)
 
@@ -227,7 +240,12 @@ export default function CalculadoraPage() {
   }
 
   function elegirProyecto(proyecto: Proyecto) {
-    registrarEvento('calculadora_proyecto_elegido', { proyecto_id: proyecto.id })
+    const duracion1 = Math.round((Date.now() - tiempoInicioPaso) / 1000)
+    registrarEvento('calculadora_proyecto_elegido', {
+      proyecto_id: proyecto.id,
+      duracion_paso_seg: duracion1,
+    })
+    setTiempoInicioPaso(Date.now())
     setProyectoSeleccionado(proyecto)
     setMaterialSeleccionado(null); setAcabadoSeleccionado(null); setCalibreSeleccionado(null)
     setMedidaIdx(0); setSupAncho(''); setSupLargo(''); setModoCalculo('superficie')
@@ -236,7 +254,13 @@ export default function CalculadoraPage() {
   }
 
   function elegirMaterial(material: Material) {
-    registrarEvento('calculadora_material_elegido', { proyecto_id: proyectoSeleccionado?.id ?? null, material })
+    const duracion2 = Math.round((Date.now() - tiempoInicioPaso) / 1000)
+    registrarEvento('calculadora_material_elegido', {
+      proyecto_id: proyectoSeleccionado?.id ?? null,
+      material,
+      duracion_paso_seg: duracion2,
+    })
+    setTiempoInicioPaso(Date.now())
     setMaterialSeleccionado(material); setAcabadoSeleccionado(null); setPaso(3)
   }
 
@@ -311,6 +335,16 @@ export default function CalculadoraPage() {
   }
 
   function volverAtras() {
+    if (paso >= 4) {
+      const duracion = Math.round((Date.now() - tiempoInicioPaso) / 1000)
+      registrarEvento('calculadora_abandono', {
+        proyecto_id: proyectoSeleccionado?.id ?? null,
+        material: materialSeleccionado ?? null,
+        paso_abandono: paso,
+        duracion_paso_seg: duracion,
+        metadata: { calibre: calibreSeleccionado?.calibre ?? null, modo_calculo: modoCalculo }
+      })
+    }
     if (paso === 2) { setPaso(1); setProyectoSeleccionado(null) }
     else if (paso === 3) {
       if (proyectoSeleccionado && proyectoSeleccionado.materiales.length === 1) {
