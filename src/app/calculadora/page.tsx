@@ -144,13 +144,19 @@ export default function CalculadoraPage() {
   const [usosGratis,      setUsosGratis]      = useState(0)
   const [bloqueado,       setBloqueado]       = useState(false)
   const [sesionActiva,    setSesionActiva]    = useState(false)
+  const [tokensDisponibles, setTokensDisponibles] = useState<number | null>(null)
   const [cargando,        setCargando]        = useState(true)
   const [proyectoPopular, setProyectoPopular] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session) { setSesionActiva(true); setCargando(false) }
+      if (data.session) {
+        setSesionActiva(true)
+        const { data: profile } = await supabase.from('profiles').select('tokens').eq('id', data.session.user.id).single()
+        if (profile) setTokensDisponibles(profile.tokens ?? 0)
+        setCargando(false)
+      }
       else {
         const usos = parseInt(localStorage.getItem(STORAGE_KEY) ?? '0')
         setUsosGratis(usos)
@@ -249,7 +255,7 @@ export default function CalculadoraPage() {
     setPaso(4)
   }
 
-  function irAlResultado() {
+  async function irAlResultado() {
     registrarEvento('calculadora_resultado_visto', {
       proyecto_id: proyectoSeleccionado?.id ?? null,
       material: materialSeleccionado ?? null,
@@ -261,6 +267,21 @@ export default function CalculadoraPage() {
       localStorage.setItem(STORAGE_KEY, String(nuevos))
       setUsosGratis(nuevos)
       if (nuevos >= MAX_USOS_GRATIS) setBloqueado(true)
+    } else {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: profile } = await supabase.from('profiles').select('tokens').eq('id', user.id).single()
+          const tkActual = profile?.tokens ?? 0
+          if (tkActual > 0) {
+            await supabase.from('profiles').update({ tokens: tkActual - 1 }).eq('id', user.id)
+            setTokensDisponibles(tkActual - 1)
+          } else {
+            setTokensDisponibles(0)
+          }
+        }
+      } catch (e) { console.error('Error descontando token:', e) }
     }
     setPaso(5)
   }
@@ -636,6 +657,30 @@ export default function CalculadoraPage() {
         )}
 
         {paso === 5 && proyectoSeleccionado && materialSeleccionado && acabadoSeleccionado && calibreSeleccionado && (
+        <div>
+        {sesionActiva && tokensDisponibles !== null && (
+          <div style={{
+            background: tokensDisponibles === 0 ? 'rgba(226,75,74,0.12)' : tokensDisponibles <= 3 ? 'rgba(239,159,39,0.12)' : 'rgba(45,212,191,0.12)',
+            border: `1px solid ${tokensDisponibles === 0 ? 'rgba(226,75,74,0.3)' : tokensDisponibles <= 3 ? 'rgba(239,159,39,0.3)' : 'rgba(45,212,191,0.25)'}`,
+            borderRadius: 8, padding: '8px 12px', marginBottom: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{ color: tokensDisponibles === 0 ? '#E24B4A' : tokensDisponibles <= 3 ? '#EF9F27' : '#2DD4BF', fontSize: 11, fontWeight: 600 }}>
+                {tokensDisponibles === 0 ? 'Sin tokens' : 'Tokens disponibles'}
+              </div>
+              {tokensDisponibles <= 3 && tokensDisponibles > 0 && (
+                <div style={{ color: 'rgba(247,250,255,0.4)', fontSize: 9 }}>Comprá más en tu panel</div>
+              )}
+              {tokensDisponibles === 0 && (
+                <div style={{ color: 'rgba(247,250,255,0.4)', fontSize: 9 }}>Comprá más para seguir</div>
+              )}
+            </div>
+            <div style={{ color: tokensDisponibles === 0 ? '#E24B4A' : tokensDisponibles <= 3 ? '#EF9F27' : '#2DD4BF', fontSize: 18, fontWeight: 700 }}>
+              {tokensDisponibles}
+            </div>
+          </div>
+        )}
           <div className="pt-4">
             <button onClick={volverAtras} className="text-sm mb-4 flex items-center gap-1 text-blue-600">← Volver</button>
             <h2 className="text-xl font-bold text-gray-900 mb-4">Tu pedido</h2>
@@ -695,6 +740,7 @@ export default function CalculadoraPage() {
               </div>
             </div>
           </div>
+        </div>
         )}
 
       </div>
